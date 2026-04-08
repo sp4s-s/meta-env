@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dep-vuln-env"
+version = "1.0.0"
+description = "Dependency CVE triage, fix recommendation, and constrained remediation environment."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openenv-core>=0.2.0",
+    "pydantic>=2.0.0",
+    "networkx>=3.0",
+    "openai>=1.30.0",
+    "uvicorn>=0.30.0",
+    "fastapi>=0.110.0"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+
+[project.scripts]
+server = "server.app:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["env*", "data*", "tasks*", "curriculum*", "server*", "graders*"]

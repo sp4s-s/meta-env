@@ -1,0 +1,31 @@
+name: dep-vuln-env
+version: "1.0.0"
+description: "OpenEnv benchmark for dependency vulnerability prioritization and constrained remediation."
+entry_point: "env.environment:DepVulnEnv"
+observation_space: "env.models:Observation"
+action_space: "env.models:Action"
+reward_space: "env.models:Reward"
+reward_range: [-1.0, 1.0]
+tags:
+  - openenv
+  - cybersecurity
+  - supply-chain
+tasks:
+  - id: 1
+    name: cve_triage
+    difficulty: easy
+    max_steps: 5
+    description: "Rank active CVEs by real remediation priority."
+    grader: "graders.task_1:grade_task_1"
+  - id: 2
+    name: fix_recommendation
+    difficulty: medium
+    max_steps: 10
+    description: "Apply the correct fix, suppression, or acceptance action for each CVE."
+    grader: "graders.task_2:grade_task_2"
+  - id: 3
+    name: constrained_remediation
+    difficulty: hard
+    max_steps: 20
+    description: "Clear critical dependency risk under strict budget and SLA constraints."
+    grader: "graders.task_3:grade_task_3"
