@@ -17,4 +17,4 @@ RUN python -c "from data.osv_cache import cache"
 # Hugging face spaces standard port
 EXPOSE 7860
 
-CMD ["openenv", "serve", "env.environment:DepVulnEnv", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["python", "-m", "server.app"]
