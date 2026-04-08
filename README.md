@@ -83,7 +83,7 @@ tests/      — Substrate and fixture tests
 - Per-IP rate limiting on all API endpoints
 - Path traversal prevention on file uploads
 - No string interpolation of user input into queries, file paths, or shell commands
-- Security headers: X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- Security headers: X-Content-Type-Options, CSP frame-ancestors for Hugging Face embedding, Referrer-Policy
 - Request body size limits (5 MB global, 2 MB lockfiles)
 
 ## Research Credits

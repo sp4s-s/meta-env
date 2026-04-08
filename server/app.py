@@ -41,9 +41,14 @@ async def body_size_limiter(request: Request, call_next):
 async def security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+    # Hugging Face embeds Space apps in an iframe on the repo page, so using
+    # X-Frame-Options: DENY breaks the primary app view even though direct
+    # navigation to the hf.space domain still works.
+    response.headers["Content-Security-Policy"] = (
+        "frame-ancestors 'self' https://huggingface.co https://*.huggingface.co"
+    )
     return response
 
 
