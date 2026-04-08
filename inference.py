@@ -14,7 +14,7 @@ from openai import OpenAI
 
 from env.environment import DepVulnEnv
 from env.models import Action, Observation, VulnFinding, RemediationAction
-from graders.core import grade_task_2, grade_task_3
+from env.verification import task_completion_score
 
 HF_TOKEN = os.getenv("HF_TOKEN")
 API_BASE_URL = os.getenv("API_BASE_URL", "https://litellm.sclr.ac/v1")
@@ -175,17 +175,8 @@ def get_action(client: OpenAI, tid: int, obs: Observation) -> Action:
 
 
 def score(tid: int, env: DepVulnEnv, errs: int) -> float:
-    s = env.state
-    if tid == 1:
-        return env.normalized_score()
-    if tid == 2:
-        return grade_task_2(s.initial_vuln_count, len(s.remediated_vulns), errs)
-    from data.fixtures import FIXTURES
-    cr = sum(1 for c in s.ground_truth_vulns if c not in s.remediated_vulns
-             and any(f["cve_id"] == c and f["severity"] == "CRITICAL" for f in FIXTURES))
-    hr = sum(1 for c in s.ground_truth_vulns if c not in s.remediated_vulns
-             and any(f["cve_id"] == c and f["severity"] == "HIGH" for f in FIXTURES))
-    return grade_task_3(s.initial_vuln_count, len(s.remediated_vulns), cr, hr, s.budget_points, s.sla_clock)
+    del errs
+    return task_completion_score(env.state, tid)
 
 
 def run(client: OpenAI, env: DepVulnEnv, tid: int) -> None:

@@ -26,5 +26,4 @@ server = "server.app:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["env*", "data*", "tasks*", "curriculum*", "server*", "graders*", "api*"]
-
+include = ["env*", "data*", "tasks*", "curriculum*", "server*", "graders*", "api*", "examples*"]

@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
 
-from .base import TaskHandler
+from .base import TaskHandler, apply_identification
 from env.models import Action, EngineState
+from env.verification import task_completion_score, weighted_ranking_score
 
 
 def _kt_sim(l1: List[str], l2: List[str]) -> float:
@@ -34,13 +35,11 @@ def _kt_sim(l1: List[str], l2: List[str]) -> float:
 
 
 def _priority(cve_id: str, state: EngineState) -> float:
-    """Ground truth priority based on fixture data."""
-    from data.fixtures import FIXTURES
-    for f in FIXTURES:
-        if f["cve_id"] == cve_id:
-            sev_w = {"CRITICAL": 1.5, "HIGH": 1.2, "MEDIUM": 1.0, "LOW": 0.6, "NONE": 0.3}
-            return f["cvss_score"] * sev_w.get(f["severity"], 1.0)
-    return 1.0
+    evidence = state.ground_truth_evidence.get(cve_id)
+    if evidence is None:
+        return 1.0
+    sev_w = {"CRITICAL": 1.5, "HIGH": 1.2, "MEDIUM": 1.0, "LOW": 0.6, "NONE": 0.3}
+    return evidence.cvss_score * sev_w.get(evidence.severity, 1.0)
 
 
 class Task1Handler(TaskHandler):
@@ -58,7 +57,8 @@ class Task1Handler(TaskHandler):
     def execute(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
         if action.action_type == "done":
             state.done = True
-            return state.best_task_score, {"score": state.best_task_score}
+            state.best_task_score = max(state.best_task_score, task_completion_score(state, state.task_id))
+            return state.best_task_score, {"score": round(state.best_task_score, 4)}
 
         if action.action_type == "identify":
             return self._handle_identify(state, action)
@@ -74,35 +74,21 @@ class Task1Handler(TaskHandler):
             state.last_action_error = "No findings submitted"
             return 0.0, {}
 
-        truth = set(state.ground_truth_vulns)
-        tp, fp, line_hits = 0, 0, 0
-
-        for f in action.findings:
-            if f.cve_id in truth:
-                if f.cve_id not in state.identified_vulns:
-                    state.identified_vulns.append(f.cve_id)
-                    tp += 1
-                    # Line accuracy bonus
-                    if f.cve_id in state.ground_truth_lines:
-                        if f.line_number in state.ground_truth_lines[f.cve_id]:
-                            line_hits += 1
-            else:
-                if f.cve_id not in state.false_positives:
-                    state.false_positives.append(f.cve_id)
-                fp += 1
-
-        # F1 score
-        precision = tp / max(1, tp + fp)
-        recall = len(state.identified_vulns) / max(1, len(truth))
-        f1 = 2 * precision * recall / max(0.001, precision + recall)
-        line_bonus = 0.1 * line_hits / max(1, tp)
-        score = min(1.0, f1 + line_bonus)
+        info = apply_identification(state, action.findings)
+        precision = len(state.identified_vulns) / max(1, len(state.identified_vulns) + len(state.false_positives))
+        recall = len(state.identified_vulns) / max(1, len(state.ground_truth_vulns))
+        score = task_completion_score(state, state.task_id)
         state.best_task_score = max(state.best_task_score, score)
 
         return score, {
-            "tp": tp, "fp": fp, "recall": round(recall, 3),
-            "precision": round(precision, 3), "f1": round(f1, 3),
-            "line_hits": line_hits, "score": round(score, 3),
+            "tp": info["accepted"],
+            "partial": info["partial"],
+            "fp": info["fp"],
+            "recall": round(recall, 3),
+            "precision": round(precision, 3),
+            "line_hits": info["line_hits"],
+            "evidence_gain": info["evidence_gain"],
+            "score": round(score, 3),
         }
 
     def _handle_rank(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
@@ -110,9 +96,9 @@ class Task1Handler(TaskHandler):
             state.last_action_error = "No ranking submitted"
             return 0.0, {}
 
-        # Ground truth ordering by priority
         truth_order = sorted(state.ground_truth_vulns,
                              key=lambda c: _priority(c, state), reverse=True)
-        score = _kt_sim(action.risk_ranking, truth_order)
+        score = weighted_ranking_score(action.risk_ranking, state.ground_truth_evidence)
         state.best_task_score = max(state.best_task_score, score)
-        return score, {"ranking_sim": round(score, 3)}
+        state.risk_ranking_score = max(state.risk_ranking_score, score)
+        return score, {"ranking_sim": round(score, 3), "truth_order": truth_order}

@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, Tuple
 
-from .base import TaskHandler
+from .base import TaskHandler, apply_identification, apply_remediation
 from env.models import Action, EngineState
+from env.verification import task_completion_score
 
 
 class Task2Handler(TaskHandler):
@@ -27,7 +28,7 @@ class Task2Handler(TaskHandler):
     def execute(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
         if action.action_type == "done":
             state.done = True
-            sc = len(state.remediated_vulns) / max(1, state.initial_vuln_count)
+            sc = task_completion_score(state, state.task_id)
             return sc, {"sc": round(sc, 4)}
 
         if action.action_type == "identify":
@@ -40,21 +41,17 @@ class Task2Handler(TaskHandler):
         return 0.0, {}
 
     def _handle_identify(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
-        """Identification step (same logic, but lighter reward in task 2)."""
         if not action.findings:
             state.last_action_error = "No findings"
             return 0.0, {}
 
-        truth = set(state.ground_truth_vulns)
-        tp = 0
-        for f in action.findings:
-            if f.cve_id in truth and f.cve_id not in state.identified_vulns:
-                state.identified_vulns.append(f.cve_id)
-                tp += 1
-            elif f.cve_id not in truth and f.cve_id not in state.false_positives:
-                state.false_positives.append(f.cve_id)
-
-        return 0.1 * tp, {"identified": tp}
+        info = apply_identification(state, action.findings)
+        return task_completion_score(state, state.task_id), {
+            "identified": info["accepted"],
+            "partial": info["partial"],
+            "fp": info["fp"],
+            "evidence_gain": info["evidence_gain"],
+        }
 
     def _handle_remediate(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
         if not action.remediation:
@@ -64,55 +61,27 @@ class Task2Handler(TaskHandler):
         rem = action.remediation
         cve_id = rem.cve_id
 
-        # Must be a real vuln
         if cve_id not in state.ground_truth_vulns:
+            state.invalid_remediations += 1
             state.last_action_error = f"CVE {cve_id} not in ground truth"
             return -0.15, {"error": "not_present"}
 
-        # Already fixed
         if cve_id in state.remediated_vulns:
             state.last_action_error = "Already remediated"
             return -0.05, {}
 
-        # Budget check
         if state.budget_points < 2:
+            state.invalid_remediations += 1
             state.last_action_error = "Insufficient budget"
             return -0.1, {}
         state.budget_points -= 2
 
-        # Validate fix quality
-        fix_hint = state.ground_truth_fixes.get(cve_id, "")
-        r = 0.0
-        info: Dict[str, Any] = {"cve": cve_id}
-        state.last_action_error = None
+        info = {"cve": cve_id, **apply_remediation(state, rem)}
 
-        # Score components:
-        # 1. Is the action type reasonable?
-        if rem.action in ("upgrade", "replace", "mitigate"):
-            r += 0.15
-
-        # 2. Does the target version match the known fix?
-        if rem.target_version and fix_hint:
-            # Extract version from fix hint (e.g., "Upgrade jinja2>=3.1.5" -> "3.1.5")
-            if rem.target_version in fix_hint:
-                r += 0.25
-                info["version_match"] = True
-            else:
-                r += 0.05  # partial credit for any version
-                info["version_match"] = False
-
-        # 3. Justification quality (non-empty, references the CVE)
-        if rem.justification and len(rem.justification) > 10:
-            r += 0.05
-
-        state.remediated_vulns.append(cve_id)
-        info["reward"] = round(r, 3)
-
-        # Episode completion
         all_fixed = len(state.remediated_vulns) >= state.initial_vuln_count
         if all_fixed:
             state.done = True
-            sc = len(state.remediated_vulns) / max(1, state.initial_vuln_count)
-            return r + sc, {**info, "sc": round(sc, 4)}
+            sc = task_completion_score(state, state.task_id)
+            return sc, {**info, "sc": round(sc, 4)}
 
-        return r, info
+        return task_completion_score(state, state.task_id), info

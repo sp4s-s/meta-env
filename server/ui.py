@@ -18,6 +18,7 @@ from data.fixtures import FIXTURES
 from data.osv_client import osv_client
 from env.environment import DepVulnEnv
 from env.models import Action, CodeFile, RemediationAction, VulnFinding
+from examples.catalog import sample_curated_example
 
 env = DepVulnEnv()
 rollout_history: List[Dict[str, Any]] = []
@@ -392,6 +393,35 @@ body, .gradio-container {
 .gr-button-primary:hover {
     background: var(--blue-dark) !important;
 }
+
+.wide-scroll-table {
+    width: 100%;
+    max-height: 340px;
+    overflow: auto;
+}
+
+.wide-scroll-table > div,
+.wide-scroll-table [data-testid="dataframe"],
+.wide-scroll-table .wrap,
+.wide-scroll-table .table-wrap {
+    max-height: 340px;
+    overflow: auto !important;
+}
+
+.wide-scroll-table table {
+    min-width: 100%;
+}
+
+.sticky-action-panel {
+    position: sticky;
+    top: 16px;
+}
+
+.action-step-bar {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
 """
 UI_THEME = gr.themes.Base(primary_hue="blue", spacing_size="sm", radius_size="none")
 
@@ -474,6 +504,7 @@ def _run_logical_check(files: Sequence[CodeFile]) -> List[Dict[str, Any]]:
                 "cve_id": rule.cve_id,
                 "package": fixture.get("package", "unknown"),
                 "severity": fixture.get("severity", "NONE"),
+                "cvss_score": fixture.get("cvss_score", 0.0),
                 "fixed_version": fixture.get("fixed_version", ""),
                 "summary": fixture.get("summary", ""),
                 "lines": sorted(set(matched_lines)),
@@ -510,6 +541,7 @@ def _fallback_import_findings(files: Sequence[CodeFile]) -> List[Dict[str, Any]]
                 "cve_id": cve_id,
                 "package": fixture.get("package", module),
                 "severity": severity,
+                "cvss_score": fixture.get("cvss_score", 0.0),
                 "fixed_version": fixed_version,
                 "summary": fixture.get("summary", ""),
                 "lines": [line],
@@ -540,10 +572,10 @@ def _next_recommendation(obs: Any) -> str:
         next_cve = unresolved[0]
         fix = FIXTURE_BY_CVE.get(next_cve, {}).get("fixed_version", "known fixed version")
         return f"Fix {next_cve} next and move the dependency to {fix}."
-        return "Complete this rollout or reset() for a new one."
+    return "Complete this rollout or reset() for a new one."
 
 
-def _record_rollout_if_needed(obs: Any) -> None:
+def _record_rollout_if_needed(obs: Any, task_id: Optional[int] = None) -> None:
     if not obs or not obs.done or not env.state:
         return
     episode_id = env.state.episode_id
@@ -551,9 +583,10 @@ def _record_rollout_if_needed(obs: Any) -> None:
         return
     recorded_rollouts.add(episode_id)
     state = env.state
+    resolved_task_id = task_id if task_id is not None else state.task_id
     rollout_history.insert(0, {
         "Rollout": episode_id[:8],
-        "Task": f"Task {state.task_id}",
+        "Task": f"Task {resolved_task_id}",
         "Status": "complete",
         "Score": round(env.normalized_score(), 3),
         "Total reward": round(state.total_reward, 3),
@@ -993,7 +1026,7 @@ def _run_auto_episode(task_id: int):
         obs = env.step(action)
         if obs.done:
             break
-    _record_rollout_if_needed(obs)
+    _record_rollout_if_needed(obs, task_id=task_id)
     return obs
 
 
@@ -1069,11 +1102,12 @@ def _validate_javascript(content: str) -> Tuple[str, Optional[int]]:
 
 
 def _intake_dataframe(items: List[Dict[str, Any]]) -> pd.DataFrame:
-    columns = ["CVE", "Severity", "Package", "File", "Lines", "Fixed version", "Signal source", "Evidence"]
+    columns = ["CVE", "Severity", "CVSS", "Package", "File", "Lines", "Fixed version", "Signal source", "Evidence"]
     rows = [
         {
             "CVE": item["cve_id"],
             "Severity": item["severity"],
+            "CVSS": item.get("cvss_score", 0.0),
             "Package": item["package"],
             "File": item["file_path"],
             "Lines": ", ".join(str(line) for line in item["lines"]),
@@ -1089,6 +1123,7 @@ def _intake_dataframe(items: List[Dict[str, Any]]) -> pd.DataFrame:
 def do_code_intake(file_obj: Any, pasted_code: str, language: str, path_hint: str):
     raw_path = path_hint.strip()
     content = ""
+    seeded_example = None
     upload_path = _file_upload_path(file_obj)
     if upload_path:
         raw_path = upload_path
@@ -1101,15 +1136,13 @@ def do_code_intake(file_obj: Any, pasted_code: str, language: str, path_hint: st
     elif pasted_code.strip():
         content = pasted_code
     if not content:
-        empty_df = _intake_dataframe([])
-        return (
-            '<div class="context-block">Upload a source file or paste code to analyze it.</div>',
-            empty_df,
-            _render_code([], None, []),
-        )
+        seeded_example = sample_curated_example(high_risk_only=True)
+        content = seeded_example.code
+        raw_path = seeded_example.path
+        language = seeded_example.language
 
     resolved_path = raw_path or ("snippet.py" if language in ("python", "auto") else "snippet.js")
-    resolved_language = _guess_language(resolved_path, language)
+    resolved_language = seeded_example.language if seeded_example else _guess_language(resolved_path, language)
     code_file = CodeFile(path=resolved_path, content=content, language=resolved_language)
 
     if resolved_language == "python":
@@ -1118,10 +1151,22 @@ def do_code_intake(file_obj: Any, pasted_code: str, language: str, path_hint: st
         validation_text, error_line = _validate_javascript(content)
 
     matches = _candidate_signals([code_file])
-    status_blocks = [
-        f'<div class="context-block">{html.escape(validation_text)}</div>',
-        '<div class="context-block">Ground truth is not available for uploaded code. The results below come from deterministic rules and dependency signals.</div>',
-    ]
+    status_blocks = []
+    if seeded_example:
+        status_blocks.append(
+            '<div class="context-block">'
+            f'No input was provided, so the review pane loaded a curated high-risk incident from '
+            f'`examples/`: {html.escape(seeded_example.cve_id)} '
+            f'({html.escape(seeded_example.severity)} {seeded_example.cvss_score:.1f}) in '
+            f'{html.escape(seeded_example.package)}.'
+            '</div>'
+        )
+    status_blocks.extend(
+        [
+            f'<div class="context-block">{html.escape(validation_text)}</div>',
+            '<div class="context-block">Ground truth is not available for ad hoc code review. The results below come from deterministic code and dependency signals.</div>',
+        ]
+    )
     if not matches:
         status_blocks.append('<div class="context-block">No known vulnerability rule matched the uploaded code.</div>')
 
@@ -1200,12 +1245,13 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                 show_ground_truth = gr.Checkbox(value=True, label="Show ground truth labels")
                 reset_button = gr.Button("reset()", variant="primary", elem_classes="gr-button-primary")
                 state_button = gr.Button("state()")
+                sidebar_step_button = gr.Button("Run step()", elem_classes="gr-button-primary")
                 auto_button = gr.Button("Auto rollout")
                 rollout_count = gr.Slider(minimum=1, maximum=10, step=1, value=3, label="Batch rollout count")
                 batch_button = gr.Button("Batch rollouts")
 
                 gr.HTML('<div class="section-title" style="margin-top:20px;">Rollout Summary</div>')
-                rollout_summary = gr.Markdown(_rollout_summary_text())
+                rollout_summary = gr.Markdown(_rollout_summary_text(), buttons=["copy"])
 
             with gr.Column(scale=4):
                 with gr.Tab("Rollout"):
@@ -1218,8 +1264,8 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                         with gr.Column(scale=2):
                             with gr.Column(elem_classes="panel"):
                                 gr.HTML('<div class="section-title">Agent Analysis</div>')
-                                reasoning_md = gr.Markdown("No active rollout.")
-                            with gr.Column(elem_classes="panel"):
+                                reasoning_md = gr.Markdown("No active rollout.", buttons=["copy"])
+                            with gr.Column(elem_classes=["panel", "sticky-action-panel"]):
                                 gr.HTML('<div class="section-title">step()</div>')
                                 action_type = gr.Radio(
                                     choices=list(ACTION_LABELS.keys()),
@@ -1250,28 +1296,46 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                                     placeholder="Explain the code evidence for this step.",
                                     lines=5,
                                 )
-                                step_button = gr.Button("step()", variant="primary", elem_classes="gr-button-primary")
+                                with gr.Row(elem_classes="action-step-bar"):
+                                    step_button = gr.Button("step()", variant="primary", elem_classes="gr-button-primary")
+                                    step_button_secondary = gr.Button("Apply step", elem_classes="gr-button-primary")
 
                 with gr.Tab("State"):
                     with gr.Row():
                         with gr.Column(elem_classes="panel"):
                             gr.HTML('<div class="section-title">Observation</div>')
-                            observation_json = gr.JSON(value={})
+                            observation_json = gr.JSON(value={}, buttons=["copy"])
                         with gr.Column(elem_classes="panel"):
                             gr.HTML('<div class="section-title">State</div>')
-                            state_json = gr.JSON(value={})
-                    with gr.Row():
-                        with gr.Column(elem_classes="panel"):
-                            gr.HTML('<div class="section-title">Ground Truth Labels</div>')
-                            ground_truth_table = gr.DataFrame(value=_ground_truth_dataframe(True), interactive=False, wrap=True)
-                        with gr.Column(elem_classes="panel"):
-                            gr.HTML('<div class="section-title">Action Log</div>')
-                            trace_table = gr.DataFrame(value=_trace_dataframe(), interactive=False, wrap=True)
+                            state_json = gr.JSON(value={}, buttons=["copy"])
+                    with gr.Column(elem_classes="panel"):
+                        gr.HTML('<div class="section-title">Ground Truth Labels</div>')
+                        ground_truth_table = gr.DataFrame(
+                            value=_ground_truth_dataframe(True),
+                            interactive=False,
+                            wrap=False,
+                            buttons=["copy", "fullscreen"],
+                            elem_classes="wide-scroll-table",
+                        )
+                    with gr.Column(elem_classes="panel"):
+                        gr.HTML('<div class="section-title">Action Labels</div>')
+                        trace_table = gr.DataFrame(
+                            value=_trace_dataframe(),
+                            interactive=False,
+                            wrap=False,
+                            buttons=["copy", "fullscreen"],
+                            elem_classes="wide-scroll-table",
+                        )
 
                 with gr.Tab("Rollouts"):
                     with gr.Column(elem_classes="panel"):
                         gr.HTML('<div class="section-title">Completed Rollouts</div>')
-                        rollout_table = gr.DataFrame(value=_rollout_dataframe(), interactive=False, wrap=True)
+                        rollout_table = gr.DataFrame(
+                            value=_rollout_dataframe(),
+                            interactive=False,
+                            wrap=True,
+                            buttons=["copy", "fullscreen"],
+                        )
 
                 with gr.Tab("Code Review"):
                     with gr.Row():
@@ -1285,11 +1349,17 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                             intake_path = gr.Textbox(label="Path hint", placeholder="src/service.py")
                             pasted_code = gr.TextArea(label="Or paste code", lines=18)
                             intake_button = gr.Button("Analyze code", variant="primary", elem_classes="gr-button-primary")
-                            intake_status = gr.HTML('<div class="context-block">Upload a source file or paste code to analyze it.</div>')
+                            intake_status = gr.HTML('<div class="context-block">Upload code, paste code, or leave both empty to load a curated high-risk incident from `examples/`.</div>')
                         with gr.Column(scale=3):
                             with gr.Column(elem_classes="panel"):
                                 gr.HTML('<div class="section-title">Detected Issues</div>')
-                                intake_table = gr.DataFrame(value=_intake_dataframe([]), interactive=False, wrap=True)
+                                intake_table = gr.DataFrame(
+                                    value=_intake_dataframe([]),
+                                    interactive=False,
+                                    wrap=False,
+                                    buttons=["copy", "fullscreen"],
+                                    elem_classes="wide-scroll-table",
+                                )
                             with gr.Column(elem_classes="panel"):
                                 gr.HTML('<div class="section-title">Code Preview</div>')
                                 intake_preview = gr.HTML(_render_code([], None, []))
@@ -1332,6 +1402,42 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
     reset_button.click(do_reset, inputs=[task_selector, selected_file, show_ground_truth], outputs=outputs)
     state_button.click(do_state, inputs=[selected_file, show_ground_truth], outputs=outputs)
     step_button.click(
+        do_step,
+        inputs=[
+            action_type,
+            action_cve,
+            action_file,
+            action_line,
+            action_package,
+            action_severity,
+            target_version,
+            code_fix,
+            risk_ranking,
+            action_reasoning,
+            selected_file,
+            show_ground_truth,
+        ],
+        outputs=outputs,
+    )
+    step_button_secondary.click(
+        do_step,
+        inputs=[
+            action_type,
+            action_cve,
+            action_file,
+            action_line,
+            action_package,
+            action_severity,
+            target_version,
+            code_fix,
+            risk_ranking,
+            action_reasoning,
+            selected_file,
+            show_ground_truth,
+        ],
+        outputs=outputs,
+    )
+    sidebar_step_button.click(
         do_step,
         inputs=[
             action_type,

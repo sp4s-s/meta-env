@@ -70,6 +70,10 @@ curl -s http://localhost:7860/api/v1/ecosystems
 conda run -n sclr python -m unittest discover -s tests -v
 ```
 
+## Curated Examples
+- Leave the Code Review input empty and click `Analyze code` to load a random high-risk incident from `examples/`.
+- Rollout sampling now draws from the same curated `examples/` corpus, so training and manual review use the same scenario bank.
+
 ### Fixture Verification (42 packages, 15+ vuln classes)
 ```bash
 conda run -n sclr python -m unittest tests.test_vuln_fixtures -v

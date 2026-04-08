@@ -23,6 +23,22 @@ class CodeFile(BaseModel):
     language: Literal["python", "javascript"]
 
 
+class GroundTruthEvidence(BaseModel):
+    """Verifier-ready evidence for a vulnerable dependency usage site."""
+    cve_id: str
+    package: str
+    severity: Literal["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"]
+    cvss_score: float = Field(ge=0.0, le=10.0)
+    fixed_version: str = ""
+    summary: str = ""
+    file_path: str
+    language: Literal["python", "javascript"]
+    line_numbers: List[int] = Field(default_factory=list)
+    code_excerpt: str = ""
+    context: str = ""
+    incident_source: str = ""
+
+
 class VulnFinding(BaseModel):
     """Agent's claim about a vulnerability in the code."""
     cve_id: str
@@ -90,23 +106,34 @@ class EngineState(OpenEnvState):
     ground_truth_lines: Dict[str, List[int]] = Field(default_factory=dict)  # cve_id -> lines
     ground_truth_files: Dict[str, str] = Field(default_factory=dict)   # cve_id -> file path
     ground_truth_fixes: Dict[str, str] = Field(default_factory=dict)   # cve_id -> fix hint
+    ground_truth_evidence: Dict[str, GroundTruthEvidence] = Field(default_factory=dict)
+    risk_weights: Dict[str, float] = Field(default_factory=dict)
     scenario_context: str = ""
 
     # Agent progress
     identified_vulns: List[str] = Field(default_factory=list)          # correctly identified
     false_positives: List[str] = Field(default_factory=list)           # wrong claims
     remediated_vulns: List[str] = Field(default_factory=list)          # successfully fixed
+    finding_scores: Dict[str, float] = Field(default_factory=dict)
+    finding_details: Dict[str, Dict[str, float]] = Field(default_factory=dict)
+    remediation_scores: Dict[str, float] = Field(default_factory=dict)
+    remediation_details: Dict[str, Dict[str, float]] = Field(default_factory=dict)
     risk_ranking_score: float = 0.0
+    weak_findings: int = 0
+    invalid_remediations: int = 0
 
     # Constraints
     budget_points: int = 0
+    initial_budget_points: int = 0
     sla_clock: int = 0
+    initial_sla_clock: int = 0
 
     # Bookkeeping
     total_reward: float = 0.0
     done: bool = False
     last_action_error: Optional[str] = None
     last_info: Dict[str, Any] = Field(default_factory=dict)
+    last_reward_breakdown: Dict[str, float] = Field(default_factory=dict)
     initial_vuln_count: int = 0
     best_task_score: float = 0.0
     action_history: List[Dict[str, Any]] = Field(default_factory=list)
