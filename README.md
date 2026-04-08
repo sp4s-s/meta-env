@@ -1,9 +1,17 @@
+---
+title: open-envs
+sdk: docker
+app_port: 7860
+tags:
+- openenv
+---
+
 # DepVulnEnv
 
 A research-grade OpenEnv benchmark for dependency vulnerability triage and remediation. Models real-world security engineering workflows: ranking prioritized risks and applying fixes under constraints.
 
 ## Task Overview
-1. **`cve_triage`** (`easy`): Rank CVEs by composite priority. Graded via Kendall-τ.
+1. **`cve_triage`** (`easy`): Rank CVEs by composite priority. Graded via Kendall-tau.
 2. **`fix_recommendation`** (`medium`): Resolve vulnerabilities using fix/suppress/accept actions.
 3. **`constrained_remediation`** (`hard`): Resolve all criticals within budget and SLA limits.
 
@@ -29,5 +37,3 @@ python inference.py  # Run heuristic baseline
 python -m unittest discover -s tests
 openenv validate
 ```
-
-See [USAGE.md](USAGE.md) for detailed execution instructions.
