@@ -8,93 +8,193 @@ tags:
 
 # DepVulnEnv
 
-OpenEnv benchmark for dependency vulnerability triage and remediation from source code.
+DepVulnEnv is an OpenEnv-compatible environment for dependency vulnerability work from source code.
+Each episode gives the agent one or more source files and asks it to:
 
-## Overview
+- identify vulnerable dependencies
+- rank confirmed findings
+- propose fixes in the harder tasks
+- work within budget and SLA constraints when those constraints are enabled
 
-Agents receive source code blocks containing vulnerable dependency imports and must:
-1. Identify which CVEs are present by analyzing import patterns and API usage
-2. Propose correct remediations (upgrade versions, replacements, mitigations)
-3. Manage budget and SLA constraints in multi-file scenarios
+The repository includes a web UI, a small API surface, a baseline inference script, and the task logic used to score runs.
 
-Supports Python (PyPI), Node.js (npm), and Go ecosystems.
+## What Runs Here
 
-## Tasks
+- `python -m server.app`
+  Starts the Hugging Face / production entrypoint on port `7860`
+  Serves the UI at `/`
+  Serves API routes under `/api/v1`
 
-| Task | Difficulty | Objective |
-|------|-----------|-----------|
-| 1 — Identify | Easy | Find CVEs in code, rank by risk |
-| 2 — Remediate | Medium | Identify + fix under budget |
-| 3 — Constrained | Hard | Multi-file remediation, budget + SLA |
+- `python -m server.ui`
+  Starts the standalone UI on port `7861`
+  Useful when you only want to work on the Gradio frontend
 
-## Action Space
+- `python inference.py`
+  Runs the baseline evaluator across tasks 1, 2, and 3
+  Uses an LLM if `HF_TOKEN` is set
+  Falls back to a deterministic heuristic if `HF_TOKEN` is missing
 
-```text
-action_type: "identify" | "remediate" | "rank" | "done"
-findings:    [{cve_id, file_path, line_number, package, severity, explanation}]
-remediation: {cve_id, file_path, action, target_version, code_fix?, justification}
-risk_ranking: [cve_id, ...]
-```
+## Quick Start
 
-## Setup
+Use the requirements file if you want the full app, including Gradio:
 
 ```bash
-pip install -e "."
-python inference.py
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m server.app
 ```
+
+Open `http://localhost:7860`.
+
+If you need editable installs for code changes:
+
+```bash
+pip install -e .
+```
+
+Note: `requirements.txt` includes `gradio`; `pyproject.toml` does not.
 
 ## Environment Variables
 
 | Variable | Default | Purpose |
-|----------|---------|---------|
-| `API_BASE_URL` | `https://litellm.sclr.ac/v1` | LLM endpoint |
-| `MODEL_NAME` | `Qwen/Qwen2.5-72B-Instruct` | Model identifier |
-| `HF_TOKEN` | — | Auth token for LLM calls |
+|---|---|---|
+| `API_BASE_URL` | `https://litellm.sclr.ac/v1` | Base URL for LLM calls in `inference.py` |
+| `MODEL_NAME` | `Qwen/Qwen2.5-72B-Instruct` | Model used by the baseline runner |
+| `HF_TOKEN` | unset | API key for LLM-backed inference |
+
+If `HF_TOKEN` is not set, the evaluator still runs by using the built-in heuristic baseline.
+
+## Tasks
+
+| Task | Name | Max steps | What the agent must do |
+|---|---|---:|---|
+| `1` | Find vulnerable dependencies | `5` | Identify and rank vulnerable dependency usage in a single-file scenario |
+| `2` | Plan dependency fixes | `10` | Identify findings and propose remediation under a budget |
+| `3` | Multi-file constrained fix planning | `20` | Work across multiple files with both budget and SLA pressure |
+
+Constraint behavior comes from `env/environment.py`:
+
+- Budget is enabled for tasks `2` and `3`
+- SLA countdown is only enforced in task `3`
+
+## UI Guide
+
+The UI is meant to show the current run, not dump the whole internal state blindly.
+
+### Run tab
+
+- shows the current episode id, mode, scenario, and active workspace
+- shows live run metrics such as completion, step reward, episode reward, findings, fixes, budget, and SLA when relevant
+- shows code with highlighted lines from ground-truth evidence and the latest step
+- lets you submit manual steps for:
+  - confirming a finding
+  - planning a fix
+  - prioritizing findings
+  - finishing the run
+
+### State tab
+
+- `Run Snapshot`
+  Compact view of the current observation
+
+- `Episode State`
+  Compact view of the tracked environment state
+
+- `Reference Labels`
+  Ground-truth labels for the loaded scenario when the toggle is enabled
+
+- `Step Log`
+  One row per submitted action with the target, file, reward, issue, and note
+
+### History tab
+
+- keeps completed runs in memory for the current process
+- shows mode, scenario, workspace, completion, episode reward, and outcome counts
+- the sidebar summary shows:
+  - runs logged
+  - latest completion
+  - best completion
+  - recent average over the last 10 runs
+- use `Clear history` if you want to reset the in-memory history panel without restarting the app
 
 ## API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/scan` | Scan single package |
-| POST | `/api/v1/scan/batch` | Batch scan (≤50 packages) |
-| POST | `/api/v1/scan/lockfile` | Parse + scan lockfile |
-| GET | `/api/v1/vuln/{id}` | Vulnerability details |
-| GET | `/api/v1/ecosystems` | Supported ecosystems |
+All API routes are mounted under `/api/v1`.
 
-All endpoints enforce input validation, rate limiting (120 req/min per IP), and payload size bounds.
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/scan` | Scan a single package |
+| `POST` | `/scan/batch` | Scan up to 50 packages |
+| `POST` | `/scan/lockfile` | Parse and scan a manifest or lockfile |
+| `GET` | `/vuln/{id}` | Return details for a vulnerability id |
+| `GET` | `/ecosystems` | List supported ecosystems |
 
-## Architecture
+Guardrails on the API:
 
-```text
-api/        — FastAPI endpoints with input validation and rate limiting
-curriculum/ — Thompson Sampling adaptive scenario selection
-data/       — OSV client, ecosystem adapters, scenario generators
-env/        — OpenEnv environment, models, reward shaping, verification
-examples/   — Curated real-CVE source samples for rollout corpus
-graders/    — Canonical task grading functions
-server/     — Gradio UI, security middleware, app entrypoint
-tasks/      — Task handler implementations
-tests/      — Substrate and fixture tests
+- request rate limiting per IP
+- strict input validation
+- path sanitization on uploaded filenames
+- payload size limits for requests and lockfiles
+
+## Baseline Evaluator
+
+`inference.py` is a simple runner for all three tasks.
+
+Behavior:
+
+- with `HF_TOKEN`
+  Calls the configured model through the OpenAI-compatible client
+
+- without `HF_TOKEN`
+  Falls back to a deterministic heuristic that scans imports and submits basic actions
+
+Typical usage:
+
+```bash
+python inference.py
 ```
 
-## Security
+The script prints structured logs for:
 
-- Strict Pydantic schemas with regex allowlists on all user inputs
-- Per-IP rate limiting on all API endpoints
-- Path traversal prevention on file uploads
-- No string interpolation of user input into queries, file paths, or shell commands
-- Security headers: X-Content-Type-Options, CSP frame-ancestors for Hugging Face embedding, Referrer-Policy
-- Request body size limits (5 MB global, 2 MB lockfiles)
+- task start
+- each step
+- final score and reward list
 
-## Research Credits
+## Repository Layout
 
-| Paper | Adaptation |
-|-------|------------|
-| Ng, Harada & Russell, "Policy Invariance Under Reward Transformations" (ICML 1999) | Potential-based reward shaping: F(s,s') = γΦ(s') − Φ(s) preserves optimal policies while providing dense training signal |
-| Lightman et al., "Let's Verify Step by Step" (ICLR 2024) | Process-supervised verification: stepwise scoring of identification and remediation quality rather than outcome-only evaluation |
-| Peng et al., "VerIF: Verification-guided Instruction Following" (2025) | Deterministic structural evidence checks (file, line, package, version) for auditable grading |
-| Schulman et al., "High-Dimensional Continuous Control Using GAE" (ICLR 2016) | Running advantage normalization for stable reward distributions across episodes |
-| Chen et al., "Teaching Large Language Models to Self-Debug" (ACL 2024) | Verification pressure via explicit error feedback in observation space |
+| Path | Purpose |
+|---|---|
+| `api/` | FastAPI routes for package and lockfile scanning |
+| `curriculum/` | Scenario sampling logic |
+| `data/` | OSV cache, ecosystem adapters, fixtures, and scenario generation |
+| `env/` | Environment state, reward shaping, verification, and observation building |
+| `examples/` | Curated code samples used by the UI code review tab |
+| `graders/` | Grading helpers |
+| `server/` | App entrypoint and Gradio UI |
+| `tasks/` | Task handlers for tasks 1, 2, and 3 |
+| `tests/` | Automated tests |
+
+## Deployment Notes
+
+The Docker image:
+
+- installs dependencies from `requirements.txt`
+- pre-warms the cached scenario bank during build
+- exposes port `7860`
+- starts the app with `python -m server.app`
+
+That matches the Hugging Face Space configuration in this repo.
+
+## Security Notes
+
+Current protections include:
+
+- strict request validation
+- bounded upload sizes
+- rate limiting
+- no string interpolation into shell commands, file paths, or queries from user input
+- response headers for content type safety, referrer policy, and Hugging Face iframe embedding
 
 ## License
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ast
 import html
+import os
 import re
 import time
 from dataclasses import dataclass
@@ -23,12 +24,22 @@ from examples.catalog import sample_curated_example
 env = DepVulnEnv()
 rollout_history: List[Dict[str, Any]] = []
 recorded_rollouts: set[str] = set()
-current_reasoning = "Call reset() to load a task, inspect state(), and submit step() actions."
+current_reasoning = "Start a run to load code, inspect the pipeline state, and submit steps."
 ACTION_LABELS = {
-    "Identify finding": "identify",
-    "Submit remediation": "remediate",
-    "Rank risk": "rank",
-    "Complete rollout": "done",
+    "Confirm finding": "identify",
+    "Plan fix": "remediate",
+    "Prioritize findings": "rank",
+    "Finish run": "done",
+}
+TASK_CHOICES = [
+    "1: Find vulnerable dependencies",
+    "2: Find vulnerabilities and plan fixes",
+    "3: Multi-file constrained fix planning",
+]
+TASK_NAMES = {
+    1: "Find vulnerable dependencies",
+    2: "Plan dependency fixes",
+    3: "Multi-file constrained fix planning",
 }
 
 FIXTURE_BY_CVE = {item["cve_id"]: item for item in FIXTURES}
@@ -162,272 +173,166 @@ LOGICAL_RULES: Tuple[LogicalCheckRule, ...] = (
 )
 
 CSS = """
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root {
-    --bg-app: #f5f6f7;
-    --bg-panel: #ffffff;
-    --bg-muted: #f0f2f5;
-    --border: #d9dde3;
-    --border-strong: #c9ced6;
-    --text-main: #1d2129;
-    --text-muted: #57606a;
-    --text-soft: #6b7280;
-    --blue: #1877f2;
-    --blue-dark: #1664d9;
-    --green: #137333;
-    --red: #b42318;
-    --amber: #b54708;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --bg-app: #000000;
+    --bg-panel: #000000;
+    --bg-card: #050505;
+    --bg-input: #0a0a0a;
+    --border: #333333;
+    --border-focus: #666666;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #666666;
+    --accent: #ffffff;
+    --accent-glow: transparent;
+    --green: #4ade80;
+    --green-bg: transparent;
+    --red: #f87171;
+    --red-bg: transparent;
+    --amber: #facc15;
+    --amber-bg: transparent;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'JetBrains Mono', monospace;
+    --radius: 0px;
+    --radius-lg: 0px;
 }
+/* Force stark monochrome on all Gradio internals */
+body, .gradio-container, .gradio-container .main, .contain,
+.gradio-container .wrap, footer, .app { background: var(--bg-app) !important; color: var(--text-primary) !important; font-family: var(--mono) !important; }
+.gradio-container { width: 100% !important; max-width: 100% !important; min-width: 100% !important; margin: 0 !important; padding: 0 !important; min-height: 100vh !important; }
+.gr-group, .gr-box, .gr-form, .gr-panel, .gr-block, .block,
+.gradio-container .block, .gradio-container .form { background: transparent !important; border-radius: 0 !important; box-shadow: none !important;}
+input, textarea, select, .gr-input, .gr-text-input,
+[data-testid="textbox"], [data-testid="dropdown"] { background: var(--bg-input) !important; color: var(--text-primary) !important; border: 1px solid var(--border) !important; font-family: var(--mono) !important; border-radius: 0 !important; }
+label, .gr-label, .label-wrap { color: var(--text-secondary) !important; font-family: var(--mono) !important; text-transform: uppercase; font-size: 11px !important;}
+.tabs, .tab-nav, .tabitem { background: transparent !important; }
+.tab-nav { border-bottom: 1px solid var(--border) !important; }
+.tab-nav button { color: var(--text-tertiary) !important; font-weight: 400 !important; border: none !important; font-family: var(--mono) !important; text-transform: uppercase; border-radius: 0 !important;}
+.tab-nav button.selected { color: var(--text-primary) !important; border-bottom: 2px solid var(--text-primary) !important; background: transparent !important;}
+.gr-check-radio, .gr-checkbox { accent-color: var(--accent) !important; }
+footer { display: none !important; }
 
-body, .gradio-container {
-    background: var(--bg-app) !important;
-    color: var(--text-main) !important;
-    font-family: var(--sans) !important;
-    margin: 0 !important;
-}
-
-.gradio-container {
-    max-width: 1540px !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
-}
-
-.shell {
-    min-height: 100vh;
-}
-
-.topbar {
-    background: var(--bg-panel);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.brand-title {
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-}
-
-.brand-subtitle {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 2px;
-}
-
-.shell-content {
-    padding: 16px;
-    gap: 16px;
-}
-
-.sidebar {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    padding: 16px;
-}
-
-.panel {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    padding: 16px;
-}
-
-.section-title {
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-}
-
-.section-note {
-    color: var(--text-muted);
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.status-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 700;
-    border: 1px solid var(--border-strong);
-    background: var(--bg-muted);
-}
-
-.status-ready {
-    color: var(--text-muted);
-}
-
-.status-running {
-    color: var(--blue-dark);
-    border-color: #b9d2fb;
-    background: #edf4ff;
-}
-
-.status-done {
-    color: var(--green);
-    border-color: #b7dfc0;
-    background: #edf8ef;
-}
-
-.metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.metric {
-    border: 1px solid var(--border);
-    background: var(--bg-panel);
-    padding: 12px;
-}
-
-.metric-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-}
-
-.metric-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-main);
-}
-
-.context-block {
-    border: 1px solid var(--border);
-    background: var(--bg-panel);
-    padding: 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: var(--text-main);
-    margin-bottom: 10px;
-}
-
-.context-error {
-    border-color: #f2c7c2;
-    background: #fff5f4;
-    color: var(--red);
-}
-
-.file-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--bg-muted);
-    border: 1px solid var(--border);
-    border-bottom: none;
-    padding: 10px 12px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.code-shell {
-    border: 1px solid var(--border);
-    background: #fbfcfd;
-    overflow: auto;
-    max-height: 760px;
-}
-
-.code-row {
-    display: grid;
-    grid-template-columns: 56px 1fr;
-    font-family: var(--mono);
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.code-row:hover {
-    background: #f7f9fb;
-}
-
-.line-number {
-    padding: 0 10px 0 0;
-    text-align: right;
-    color: #8a94a6;
-    background: var(--bg-muted);
-    border-right: 1px solid var(--border);
-    user-select: none;
-}
-
-.line-text {
-    padding: 0 12px;
-    white-space: pre;
-    color: var(--text-main);
-}
-
-.line-hit {
-    background: #fff8db;
-}
-
-.empty-state {
-    border: 1px dashed var(--border-strong);
-    background: var(--bg-panel);
-    padding: 24px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 14px;
-}
-
-.small-note {
-    font-size: 12px;
-    color: var(--text-soft);
-}
-
-.gr-button-primary {
-    background: var(--blue) !important;
-    border-color: var(--blue) !important;
-}
-
-.gr-button-primary:hover {
-    background: var(--blue-dark) !important;
-}
-
-.wide-scroll-table {
-    width: 100%;
-    max-height: 340px;
-    overflow: auto;
-}
-
-.wide-scroll-table > div,
-.wide-scroll-table [data-testid="dataframe"],
-.wide-scroll-table .wrap,
-.wide-scroll-table .table-wrap {
-    max-height: 340px;
-    overflow: auto !important;
-}
-
-.wide-scroll-table table {
-    min-width: 100%;
-}
-
-.sticky-action-panel {
-    position: sticky;
-    top: 16px;
-}
-
-.action-step-bar {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-}
+.shell { min-height: 100vh; font-family: var(--mono); }
+.topbar { background: var(--bg-app); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; }
+.brand-title { font-size: 14px; font-weight: 600; letter-spacing: 0.05em; color: var(--text-primary); text-transform: uppercase; }
+.brand-subtitle { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.shell-content { padding: 16px; gap: 16px; align-items: stretch; display: flex; width: 100%; box-sizing: border-box; }
+.sidebar { background: var(--bg-app); border-right: 1px solid var(--border); padding: 20px; flex: 0 0 320px !important; min-width: 320px !important; max-width: 320px !important; }
+.main-content { flex: 1 1 0% !important; min-width: 0 !important; width: 100% !important; }
+.panel { background: var(--bg-app); border: 1px solid var(--border); padding: 20px; }
+.tabitem { width: 100% !important; min-width: 100% !important; box-sizing: border-box; padding-top: 16px !important; border: none !important; }
+.section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 12px; padding-bottom: 4px; border-bottom: 1px solid var(--border); display: block;}
+.section-note { color: var(--text-tertiary); font-size: 12px; line-height: 1.5; margin-bottom: 16px;}
+.status-pill { display: inline-flex; align-items: center; padding: 2px 8px; font-size: 11px; font-weight: 700; border: 1px solid; text-transform: uppercase; }
+.status-ready { color: var(--amber); border-color: var(--amber); }
+.status-running { color: var(--green); border-color: var(--green); }
+.status-done { color: var(--text-primary); border-color: var(--text-primary); }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 16px; }
+.metric { background: var(--bg-app); padding: 12px; overflow: hidden; }
+.metric-label { font-size: 10px; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.metric-value { font-size: 14px; font-weight: 400; color: var(--text-primary); word-wrap: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3;}
+.context-block { border: 1px solid var(--border); background: var(--bg-card); padding: 12px; font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 12px; word-wrap: break-word; overflow-wrap: break-word; }
+.context-error { border-color: var(--red); color: var(--red); }
+.file-header { display: flex; justify-content: space-between; align-items: center; background: var(--border); padding: 6px 12px; font-size: 11px; color: var(--bg-app); text-transform: uppercase; font-weight: 600;}
+.code-shell { border: 1px solid var(--border); background: var(--bg-app); overflow: auto; max-height: 600px; }
+.code-row { display: grid; grid-template-columns: 40px 1fr; font-size: 12px; line-height: 1.5; }
+.code-row:hover { background: #111; }
+.line-number { padding: 0 8px 0 0; text-align: right; color: var(--text-tertiary); border-right: 1px solid var(--border); }
+.line-text { padding: 0 12px; white-space: pre; color: var(--text-secondary); }
+.line-hit { background: rgba(250, 204, 21, 0.1); }
+.line-hit .line-number { color: var(--amber); }
+.line-hit .line-text { color: var(--amber); }
+.empty-state { border: 1px dashed var(--border); padding: 30px; text-align: center; color: var(--text-tertiary); font-size: 12px; text-transform: uppercase; word-wrap: break-word;}
+.small-note { font-size: 11px; color: var(--text-tertiary); }
+.gr-button-primary { background: var(--text-primary) !important; color: var(--bg-app) !important; border: none !important; font-weight: 600 !important; text-transform: uppercase; border-radius: 0 !important; transition: none !important; white-space: normal !important; height: auto !important; padding: 10px !important;}
+.gr-button-primary:hover { background: var(--text-secondary) !important; }
+button.secondary { background: transparent !important; border: 1px solid var(--border) !important; color: var(--text-secondary) !important; border-radius: 0 !important; text-transform: uppercase; font-size: 11px !important; white-space: normal !important; height: auto !important; padding: 10px !important;}
+button.secondary:hover { border-color: var(--text-primary) !important; color: var(--text-primary) !important; }
+.wide-scroll-table { width: 100%; max-height: 360px; overflow: auto; border: 1px solid var(--border); }
+.wide-scroll-table table { min-width: 100%; border-collapse: collapse; font-size: 11px; }
+.wide-scroll-table th { background: var(--border) !important; color: var(--bg-app) !important; font-weight: 600; text-transform: uppercase; }
+.wide-scroll-table th, .wide-scroll-table td { border-bottom: 1px solid var(--border); padding: 6px 10px; text-align: left; word-wrap: break-word;}
+.sticky-action-panel { position: sticky; top: 16px; }
+.action-step-bar { display: flex; gap: 8px; margin-top: 12px; }
+.summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border);}
+.summary-card { background: var(--bg-app); padding: 12px; overflow: hidden; }
+.summary-label { font-size: 10px; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.summary-value { font-size: 14px; color: var(--text-primary); word-wrap: break-word; overflow-wrap: break-word; line-height: 1.3;}
+.reward-pos { color: var(--green) !important; }
+.reward-neg { color: var(--red) !important; }
+.reward-zero { color: var(--text-tertiary) !important; }
+.step-trace { border: 1px solid var(--border); background: var(--bg-app); }
+.step-card { border-bottom: 1px dashed var(--border); padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.step-card:last-child { border-bottom: none; }
+.step-header { display: flex; justify-content: space-between; align-items: baseline; }
+.step-num { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase;}
+.step-action { font-size: 12px; color: var(--text-primary); }
+.step-target { font-size: 11px; color: var(--text-secondary); }
+.step-reward { font-size: 12px; font-weight: 600; }
+.progress-ring { width: 100%; height: 2px; background: var(--border); }
+.progress-fill { height: 100%; background: var(--text-primary); transition: width 0.2s; }
+.markdown-body code { background-color: var(--bg-card) !important; color: var(--text-primary) !important; border: 1px solid var(--border) !important; border-radius: 0 !important; padding: 2px 4px !important; }
+.markdown-body pre { background-color: var(--bg-app) !important; border: 1px solid var(--border) !important; border-radius: 0 !important; }
 """
-UI_THEME = gr.themes.Base(primary_hue="blue", spacing_size="sm", radius_size="none")
+UI_THEME = gr.themes.Base(
+    primary_hue="blue",
+    secondary_hue="slate",
+    neutral_hue="slate",
+    spacing_size="sm",
+    radius_size="sm",
+)
 
 
 def _parse_task_id(task_label: str) -> int:
     return int(str(task_label).split(":", 1)[0].strip())
+
+
+def _task_name(task_id: int) -> str:
+    return TASK_NAMES.get(task_id, f"Task {task_id}")
+
+
+def _action_name(action_value: str) -> str:
+    mapping = {
+        "identify": "Confirm finding",
+        "remediate": "Plan fix",
+        "rank": "Prioritize findings",
+        "done": "Finish run",
+    }
+    return mapping.get(action_value, action_value.replace("_", " ").title())
+
+
+def _workspace_label(state: Any) -> str:
+    if not state or not state.code_files:
+        return "No code loaded"
+    paths = [code_file.path for code_file in state.code_files]
+    if len(paths) == 1:
+        return paths[0]
+    return f"{paths[0]} +{len(paths) - 1} more files"
+
+
+def _workspace_name(state: Any) -> str:
+    label = _workspace_label(state)
+    return os.path.basename(label.split(" +", 1)[0]) or label
+
+
+def _current_stage(obs: Any) -> str:
+    if not obs or not env.state:
+        return "Ready"
+    state = env.state
+    if obs.done:
+        return "Finished"
+    if not state.action_history:
+        return "Review code"
+    if not state.identified_vulns:
+        return "Confirm findings"
+    if state.task_id == 1 and state.risk_ranking_score <= 0:
+        return "Prioritize findings"
+    if state.task_id >= 2 and not state.remediated_vulns:
+        return "Plan fixes"
+    if state.task_id >= 2 and state.remediated_vulns:
+        return "Validate and finish"
+    return "Finish run"
 
 
 def _status_label(obs: Any) -> str:
@@ -561,18 +466,18 @@ def _candidate_signals(files: Sequence[CodeFile]) -> List[Dict[str, Any]]:
 
 def _next_recommendation(obs: Any) -> str:
     if not obs or not env.state:
-        return "Call reset() to start a rollout."
+        return "Start a new run to load code."
     state = env.state
     unresolved = [cve for cve in state.ground_truth_vulns if cve not in state.remediated_vulns]
     if not state.identified_vulns and unresolved:
-        return "Start with identify using the strongest code evidence."
+        return "Confirm the strongest finding from the code evidence first."
     if state.task_id == 1 and state.identified_vulns:
-        return "Rank the confirmed findings, then complete the rollout."
+        return "Prioritize the confirmed findings, then finish the run."
     if state.task_id >= 2 and unresolved:
         next_cve = unresolved[0]
         fix = FIXTURE_BY_CVE.get(next_cve, {}).get("fixed_version", "known fixed version")
-        return f"Fix {next_cve} next and move the dependency to {fix}."
-    return "Complete this rollout or reset() for a new one."
+        return f"Plan the fix for {next_cve} next and move the dependency to {fix}."
+    return "Finish this run or start a new one."
 
 
 def _record_rollout_if_needed(obs: Any, task_id: Optional[int] = None) -> None:
@@ -584,49 +489,76 @@ def _record_rollout_if_needed(obs: Any, task_id: Optional[int] = None) -> None:
     recorded_rollouts.add(episode_id)
     state = env.state
     resolved_task_id = task_id if task_id is not None else state.task_id
+    vuln_count = len(state.ground_truth_vulns)
     rollout_history.insert(0, {
-        "Rollout": episode_id[:8],
-        "Task": f"Task {resolved_task_id}",
+        "Run": episode_id[:8],
+        "Mode": _task_name(resolved_task_id),
+        "Scenario": state.scenario_idx,
+        "Workspace": _workspace_label(state),
         "Status": "complete",
-        "Score": round(env.normalized_score(), 3),
-        "Total reward": round(state.total_reward, 3),
+        "Completion": round(env.normalized_score(), 3),
+        "Episode reward": round(state.total_reward, 3),
         "Steps": f"{state.step}/{state.max_steps}",
-        "Identified": len(state.identified_vulns),
-        "Remediated": len(state.remediated_vulns),
-        "False positives": len(state.false_positives),
-        "Budget left": state.budget_points,
-        "SLA left": state.sla_clock,
+        "Findings": f"{len(state.identified_vulns)}/{vuln_count}",
+        "Fixes": "--" if resolved_task_id == 1 else f"{len(state.remediated_vulns)}/{vuln_count}",
+        "False alarms": len(state.false_positives),
         "Finished": time.strftime("%H:%M:%S"),
     })
 
 
 def _rollout_dataframe() -> pd.DataFrame:
     columns = [
-        "Rollout",
-        "Task",
+        "Run",
+        "Mode",
+        "Scenario",
+        "Workspace",
         "Status",
-        "Score",
-        "Total reward",
+        "Completion",
+        "Episode reward",
         "Steps",
-        "Identified",
-        "Remediated",
-        "False positives",
-        "Budget left",
-        "SLA left",
+        "Findings",
+        "Fixes",
+        "False alarms",
         "Finished",
     ]
     return pd.DataFrame(rollout_history, columns=columns)
 
 
-def _rollout_summary_text() -> str:
+def _rollout_summary_html() -> str:
     if not rollout_history:
-        return "No completed rollouts yet."
-    scores = [float(item["Score"]) for item in rollout_history]
-    return (
-        f"{len(rollout_history)} completed rollouts. "
-        f"Best score {max(scores):.3f}. "
-        f"Average score {sum(scores) / len(scores):.3f}."
+        return '<div class="section-note">No completed runs yet.</div>'
+
+    scores = [float(item["Completion"]) for item in rollout_history]
+    latest = rollout_history[0]
+    recent = rollout_history[: min(10, len(rollout_history))]
+    recent_avg = sum(float(item["Completion"]) for item in recent) / len(recent)
+    all_time_avg = sum(scores) / len(scores)
+    cards = [
+        ("Runs logged", str(len(rollout_history))),
+        ("Latest completion", f"{float(latest['Completion']):.3f}"),
+        ("Best completion", f"{max(scores):.3f}"),
+        ("Recent avg (10)", f"{recent_avg:.3f}"),
+    ]
+    card_html = "".join(
+        '<div class="summary-card">'
+        f'<div class="summary-label">{html.escape(label)}</div>'
+        f'<div class="summary-value">{html.escape(value)}</div>'
+        '</div>'
+        for label, value in cards
     )
+    note = (
+        f"Latest run: {latest['Mode']} on {latest['Workspace']} at {latest['Finished']}. "
+        f"All-time average completion: {all_time_avg:.3f}."
+    )
+    return f'<div class="summary-grid">{card_html}</div><div class="summary-note">{html.escape(note)}</div>'
+
+
+def do_clear_history():
+    rollout_history.clear()
+    recorded_rollouts.clear()
+    if env.state and env.state.done:
+        recorded_rollouts.add(env.state.episode_id)
+    return _rollout_dataframe(), _rollout_summary_html()
 
 
 def _ground_truth_dataframe(show_ground_truth: bool) -> pd.DataFrame:
@@ -657,20 +589,20 @@ def _ground_truth_dataframe(show_ground_truth: bool) -> pd.DataFrame:
 
 
 def _trace_dataframe() -> pd.DataFrame:
-    columns = ["Step", "Action", "CVE", "File", "Line", "Reward", "Error", "Reasoning"]
+    columns = ["Step", "Action", "Target", "File", "Line", "Step reward", "Issue", "Note"]
     if not env.state:
         return pd.DataFrame(columns=columns)
     rows: List[Dict[str, Any]] = []
     for item in env.state.action_history:
         rows.append({
             "Step": item.get("step"),
-            "Action": item.get("type"),
-            "CVE": item.get("cve") or "",
+            "Action": _action_name(item.get("type", "")),
+            "Target": item.get("cve") or "",
             "File": item.get("file_path") or "",
             "Line": item.get("line_number") or "",
-            "Reward": item.get("r"),
-            "Error": item.get("error") or "",
-            "Reasoning": item.get("reasoning") or "",
+            "Step reward": item.get("r"),
+            "Issue": item.get("error") or "",
+            "Note": item.get("reasoning") or "",
         })
     return pd.DataFrame(rows, columns=columns)
 
@@ -703,7 +635,7 @@ def _highlight_lines(obs: Any, selected_file: Optional[str]) -> List[int]:
 
 def _render_code(files: Sequence[CodeFile], selected_file: Optional[str], highlights: Sequence[int]) -> str:
     if not files:
-        return '<div class="empty-state">Call reset() or upload code to inspect it here.</div>'
+        return '<div class="empty-state">Start a run or upload code to inspect it here.</div>'
     target = next((item for item in files if item.path == selected_file), files[0])
     lines = target.content.splitlines() or [""]
     highlight_set = set(highlights)
@@ -729,14 +661,16 @@ def _render_code(files: Sequence[CodeFile], selected_file: Optional[str], highli
 def _episode_header_html(obs: Any) -> str:
     if not obs or not env.state:
         return (
-            '<div class="section-title">Active Rollout</div>'
-            '<div class="section-note">No active rollout. Use reset() to load code, labels, and constraints.</div>'
+            '<div class="section-title">Active Run</div>'
+            '<div class="section-note">No active run. Start a run to load code, labels, and workflow constraints.</div>'
         )
+    state = env.state
+    subtitle = f"{_task_name(state.task_id)} | Scenario {state.scenario_idx} | {_workspace_name(state)}"
     return (
-        '<div class="section-title">Active Rollout</div>'
+        '<div class="section-title">Active Run</div>'
         f'<div style="display:flex; justify-content:space-between; align-items:center;">'
         f'<div><div style="font-size:18px; font-weight:700;">{env.state.episode_id[:8]}</div>'
-        f'<div class="small-note">Task {env.state.task_id}</div></div>'
+        f'<div class="small-note">{html.escape(subtitle)}</div></div>'
         f'{_status_html(obs)}'
         "</div>"
     )
@@ -746,24 +680,31 @@ def _metrics_html(obs: Any) -> str:
     if not obs or not env.state:
         return (
             '<div class="metrics-grid">'
-            '<div class="metric"><div class="metric-label">Status</div><div class="metric-value">Ready</div></div>'
-            '<div class="metric"><div class="metric-label">Step</div><div class="metric-value">0</div></div>'
-            '<div class="metric"><div class="metric-label">Score</div><div class="metric-value">0.00</div></div>'
-            '<div class="metric"><div class="metric-label">Reward</div><div class="metric-value">0.000</div></div>'
+            '<div class="metric"><div class="metric-label">Stage</div><div class="metric-value">Ready</div></div>'
+            '<div class="metric"><div class="metric-label">Step</div><div class="metric-value">0/0</div></div>'
+            '<div class="metric"><div class="metric-label">Completion</div><div class="metric-value">0.000</div></div>'
+            '<div class="metric"><div class="metric-label">Episode reward</div><div class="metric-value">0.000</div></div>'
             '</div>'
         )
     state = env.state
     last_reward = obs.reward if obs.reward is not None else (state.action_history[-1]["r"] if state.action_history else 0.0)
     parts = [
-        ("Task", str(state.task_id)),
+        ("Mode", _task_name(state.task_id)),
+        ("Stage", _current_stage(obs)),
         ("Step", f"{state.step}/{state.max_steps}"),
-        ("Score", f"{env.normalized_score():.3f}"),
-        ("Last reward", f"{float(last_reward):+.3f}"),
-        ("Total reward", f"{state.total_reward:+.3f}"),
-        ("Budget", str(obs.budget_points)),
-        ("SLA", str(obs.sla_clock)),
-        ("Confirmed / fixed", f"{len(state.identified_vulns)}/{len(state.remediated_vulns)}"),
+        ("Completion", f"{env.normalized_score():.3f}"),
+        ("Last step reward", f"{float(last_reward):+.3f}"),
+        ("Episode reward", f"{state.total_reward:+.3f}"),
+        ("Findings", f"{len(state.identified_vulns)}/{len(state.ground_truth_vulns)}"),
     ]
+    if state.task_id == 1:
+        parts.append(("Priority list", "ready" if state.risk_ranking_score > 0 else "pending"))
+    else:
+        parts.append(("Fixes", f"{len(state.remediated_vulns)}/{len(state.ground_truth_vulns)}"))
+    if state.initial_budget_points > 0:
+        parts.append(("Budget left", str(obs.budget_points)))
+    if state.task_id == 3:
+        parts.append(("SLA left", str(obs.sla_clock)))
     metrics = [
         (
             '<div class="metric">'
@@ -773,55 +714,200 @@ def _metrics_html(obs: Any) -> str:
         )
         for label, value in parts
     ]
-    context = f'<div class="context-block">{html.escape(obs.task_context)}</div>'
+    context = (
+        f'<div class="context-block"><strong>Workspace:</strong> {html.escape(_workspace_label(state))}<br>'
+        f'<strong>Run goal:</strong> {html.escape(obs.task_context)}</div>'
+    )
     if state.last_action_error:
         context += f'<div class="context-block context-error">{html.escape(state.last_action_error)}</div>'
     return f'<div class="metrics-grid">{"".join(metrics)}</div>{context}'
 
 
+def _reward_color_class(r: float) -> str:
+    if r > 0.001:
+        return "reward-pos"
+    if r < -0.001:
+        return "reward-neg"
+    return "reward-zero"
+
+
 def _reasoning_markdown(obs: Any) -> str:
     if not obs or not env.state:
-        return "No active rollout."
+        return "No active run."
     state = env.state
-    signals = _candidate_signals(obs.code_files)
-    lines: List[str] = [
-        f"Current objective: {obs.task_context}",
-        f"Score: {env.normalized_score():.3f}. Confirmed findings: {', '.join(obs.known_vulns) if obs.known_vulns else 'none yet'}.",
-    ]
+    score = env.normalized_score()
+
+    parts: List[str] = []
+
+    # Objective
+    parts.append(f"**Goal** &mdash; {html.escape(obs.task_context)}")
+    parts.append(f"**Stage** &mdash; {_current_stage(obs)} &nbsp;|&nbsp; **Completion** {score:.3f}")
+
+    if obs.known_vulns:
+        parts.append(f"**Confirmed** &mdash; {', '.join(f'`{v}`' for v in obs.known_vulns)}")
+
+    # Step trace as compact list
     if state.action_history:
-        last = state.action_history[-1]
-        action_summary = f"Last step {last['step']} used `{last['type']}`"
-        if last.get("cve"):
-            action_summary += f" on `{last['cve']}`"
-        action_summary += f" with reward {last['r']:+.3f}."
-        lines.append(action_summary)
-        if last.get("reasoning"):
-            lines.append(f"Latest analysis: {last['reasoning']}")
-        if last.get("error"):
-            lines.append(f"Validation issue: {last['error']}")
+        parts.append("\n---\n**Step Trace**\n")
+        for item in state.action_history:
+            r = item.get("r", 0)
+            sign = "+" if r >= 0 else ""
+            reward_str = f"`{sign}{r:.3f}`"
+            cve = item.get("cve") or ""
+            target = f" → `{cve}`" if cve else ""
+            err_mark = " ⚠" if item.get("error") else ""
+            parts.append(f"- **S{item['step']}** {_action_name(item['type'])}{target} — r={reward_str}{err_mark}")
+            if item.get("error"):
+                parts.append(f"  - _{html.escape(item['error'])}_")
     elif current_reasoning:
-        lines.append(current_reasoning)
+        parts.append(f"\n_{current_reasoning}_")
 
+    # Signals
+    signals = _candidate_signals(obs.code_files)
     if signals:
-        signal_lines = []
+        parts.append("\n---\n**Detected Signals**\n")
         for item in signals[:4]:
-            signal_lines.append(
-                f"- {item['cve_id']} in `{item['file_path']}` on lines {', '.join(map(str, item['lines']))}: {item['evidence']}"
-            )
-        lines.append("Evidence from code:\n" + "\n".join(signal_lines))
-    else:
-        lines.append("No deterministic rule matched the current code yet. Manual review is still required.")
+            lines_str = ", ".join(map(str, item["lines"]))
+            parts.append(f"- `{item['cve_id']}` in `{item['file_path']}` L{lines_str}")
+            parts.append(f"  - {item['evidence']}")
 
-    lines.append(f"Suggested next action: {_next_recommendation(obs)}")
-    return "\n\n".join(lines)
+    parts.append(f"\n**Next** &mdash; {_next_recommendation(obs)}")
+    return "\n".join(parts)
+
+
+def _reward_breakdown_view(state: Any) -> Dict[str, Any]:
+    if not state or not state.last_reward_breakdown:
+        return {}
+    breakdown = state.last_reward_breakdown
+    return {
+        "completion_before_step": breakdown.get("phi_prev"),
+        "completion_after_step": breakdown.get("phi_curr"),
+        "step_reward_from_progress": breakdown.get("pbrs_delta"),
+        "false_positive_penalty": breakdown.get("fp_delta"),
+        "weak_evidence_penalty": breakdown.get("weak_delta"),
+        "invalid_fix_penalty": breakdown.get("invalid_delta"),
+    }
+
+
+def _last_action_view(state: Any) -> Dict[str, Any]:
+    if not state or not state.action_history:
+        return {}
+    item = state.action_history[-1]
+    payload = {
+        "step": item.get("step"),
+        "action": _action_name(item.get("type", "")),
+        "target": item.get("cve"),
+        "file": item.get("file_path"),
+        "line": item.get("line_number"),
+        "step_reward": item.get("r"),
+        "issue": item.get("error"),
+        "note": item.get("reasoning"),
+    }
+    return {key: value for key, value in payload.items() if value not in ("", None)}
 
 
 def _observation_json(obs: Any) -> Dict[str, Any]:
-    return obs.model_dump() if obs else {}
+    if not obs or not env.state:
+        return {}
+    state = env.state
+    payload: Dict[str, Any] = {
+        "run": {
+            "run_id": state.episode_id[:8],
+            "status": _status_label(obs).lower(),
+            "mode": _task_name(state.task_id),
+            "stage": _current_stage(obs),
+            "scenario": state.scenario_idx,
+            "workspace": _workspace_label(state),
+        },
+        "progress": {
+            "step": f"{state.step}/{state.max_steps}",
+            "completion": round(env.normalized_score(), 3),
+            "last_step_reward": obs.reward,
+            "episode_reward": round(state.total_reward, 4),
+        },
+        "pipeline": {
+            "confirmed_findings": list(state.identified_vulns),
+            "accepted_fixes": list(state.remediated_vulns),
+            "false_alarms": len(state.false_positives),
+            "last_issue": state.last_action_error,
+        },
+        "workspace": {
+            "files": [code_file.path for code_file in state.code_files],
+            "goal": obs.task_context,
+        },
+    }
+    if state.initial_budget_points > 0 or state.task_id == 3:
+        payload["constraints"] = {
+            "budget_left": state.budget_points,
+            "sla_left": state.sla_clock,
+        }
+    last_action = _last_action_view(state)
+    if last_action:
+        payload["last_step"] = last_action
+    reward_breakdown = _reward_breakdown_view(state)
+    if reward_breakdown:
+        payload["reward_breakdown"] = reward_breakdown
+    payload["pipeline"] = {
+        key: value for key, value in payload["pipeline"].items()
+        if value not in (None, "", [])
+    }
+    return payload
 
 
 def _state_json() -> Dict[str, Any]:
-    return env.state.model_dump() if env.state else {}
+    if not env.state:
+        return {}
+    state = env.state
+    payload: Dict[str, Any] = {
+        "run": {
+            "episode_id": state.episode_id,
+            "mode": _task_name(state.task_id),
+            "scenario": state.scenario_idx,
+            "difficulty": round(state.difficulty, 3),
+            "workspace": _workspace_label(state),
+        },
+        "progress": {
+            "step": f"{state.step}/{state.max_steps}",
+            "completion": round(env.normalized_score(), 3),
+            "best_completion_seen": round(state.best_task_score, 3),
+            "ranking_score": round(state.risk_ranking_score, 3),
+            "episode_reward": round(state.total_reward, 4),
+        },
+        "pipeline": {
+            "identified": list(state.identified_vulns),
+            "remediated": list(state.remediated_vulns),
+            "false_positives": list(state.false_positives),
+            "weak_findings": state.weak_findings,
+            "invalid_fixes": state.invalid_remediations,
+        },
+        "workspace": {
+            "files": [code_file.path for code_file in state.code_files],
+            "reference_issue_count": len(state.ground_truth_vulns),
+            "context": state.scenario_context,
+        },
+        "quality": {
+            "finding_scores": state.finding_scores,
+            "remediation_scores": state.remediation_scores,
+        },
+    }
+    if state.initial_budget_points > 0 or state.task_id == 3:
+        payload["constraints"] = {
+            "budget_left": state.budget_points,
+            "budget_start": state.initial_budget_points,
+            "sla_left": state.sla_clock,
+            "sla_start": state.initial_sla_clock,
+        }
+    last_action = _last_action_view(state)
+    if last_action:
+        payload["last_step"] = last_action
+    reward_breakdown = _reward_breakdown_view(state)
+    if reward_breakdown:
+        payload["reward_breakdown"] = reward_breakdown
+    payload["pipeline"] = {
+        key: value for key, value in payload["pipeline"].items()
+        if value not in (None, "", [])
+    }
+    return payload
 
 
 def _compose_outputs(selected_file: Optional[str], show_ground_truth: bool):
@@ -842,14 +928,14 @@ def _compose_outputs(selected_file: Optional[str], show_ground_truth: bool):
         _ground_truth_dataframe(show_ground_truth),
         _trace_dataframe(),
         _rollout_dataframe(),
-        _rollout_summary_text(),
+        _rollout_summary_html(),
     )
 
 
 def do_reset(task_label: str, selected_file: Optional[str], show_ground_truth: bool):
     global current_reasoning
     obs = env.reset(_parse_task_id(task_label))
-    current_reasoning = "reset() completed. Review code evidence, inspect state(), then submit step() actions."
+    current_reasoning = "New run started. Review the code, confirm findings, then rank or plan fixes."
     return _compose_outputs(selected_file, show_ground_truth)
 
 
@@ -890,10 +976,10 @@ def do_step(
 ):
     global current_reasoning
     if not env.state:
-        current_reasoning = "No active rollout. Call reset() before step()."
+        current_reasoning = "No active run. Start a run before submitting a step."
         return _compose_outputs(selected_file, show_ground_truth)
     if env.state.done:
-        current_reasoning = "This rollout is already complete. Call reset() to start another one."
+        current_reasoning = "This run is already finished. Start a new run to continue."
         return _compose_outputs(selected_file, show_ground_truth)
 
     action_type = _action_value(action_type)
@@ -945,7 +1031,7 @@ def do_step(
         justification=reasoning.strip() or None,
     )
 
-    current_reasoning = reasoning.strip() or f"Manual `{action_type}` step submitted."
+    current_reasoning = reasoning.strip() or f"Manual `{_action_name(action_type)}` step submitted."
     try:
         env.step(action)
     except Exception as exc:
@@ -972,7 +1058,7 @@ def _identify_from_candidates(obs: Any) -> Tuple[List[VulnFinding], str]:
             f"{item['cve_id']} in {item['file_path']} from {item['signal_source']} on lines {', '.join(map(str, item['lines']))}"
         )
     if not reasoning_lines:
-        reasoning_lines.append("No high-confidence signals detected. Completing the rollout.")
+        reasoning_lines.append("No high-confidence signals detected. Finishing the run.")
     return findings, "\n".join(reasoning_lines)
 
 
@@ -1032,9 +1118,29 @@ def _run_auto_episode(task_id: int):
 
 def do_auto_rollout(task_label: str, selected_file: Optional[str], show_ground_truth: bool):
     global current_reasoning
-    obs = _run_auto_episode(_parse_task_id(task_label))
-    current_reasoning = f"Automated rollout finished with score {env.normalized_score():.3f}."
-    return _compose_outputs(selected_file, show_ground_truth)
+    task_id = _parse_task_id(task_label)
+    
+    current_reasoning = f"Resetting environment for Task {task_id}."
+    obs = env.reset(task_id)
+    yield _compose_outputs(selected_file, show_ground_truth)
+    time.sleep(0.8)
+
+    for i in range(obs.max_steps):
+        action, reasoning = _auto_action(task_id, obs)
+        current_reasoning = reasoning
+        yield _compose_outputs(selected_file, show_ground_truth)
+        time.sleep(1.2)
+
+        obs = env.step(action)
+        yield _compose_outputs(selected_file, show_ground_truth)
+        time.sleep(0.6)
+
+        if obs.done:
+            break
+
+    _record_rollout_if_needed(obs, task_id=task_id)
+    current_reasoning = f"Episode complete. Reward: {env.state.total_reward:+.3f}, Completion: {env.normalized_score():.3f}."
+    yield _compose_outputs(selected_file, show_ground_truth)
 
 
 def do_batch_rollouts(task_label: str, rollout_count: float, selected_file: Optional[str], show_ground_truth: bool):
@@ -1043,15 +1149,21 @@ def do_batch_rollouts(task_label: str, rollout_count: float, selected_file: Opti
     count = max(1, min(int(rollout_count or 1), 20))
     last_obs = None
     scores: List[float] = []
-    for _ in range(count):
+    
+    current_reasoning = f"Evaluating {count} episodes on Task {task_id}."
+    yield _compose_outputs(selected_file, show_ground_truth)
+
+    for i in range(count):
         last_obs = _run_auto_episode(task_id)
         scores.append(env.normalized_score())
+        avg = sum(scores) / len(scores)
+        current_reasoning = f"Episode {i+1}/{count} — completion {scores[-1]:.3f}, running avg {avg:.3f}."
+        yield _compose_outputs(selected_file, show_ground_truth)
+        time.sleep(0.3)
+
     if scores:
-        current_reasoning = (
-            f"Completed {count} automated rollouts. "
-            f"Best score {max(scores):.3f}, average score {sum(scores) / len(scores):.3f}."
-        )
-    return _compose_outputs(selected_file, show_ground_truth)
+        current_reasoning = f"Batch done ({count} runs). Best: {max(scores):.3f}, avg: {sum(scores)/len(scores):.3f}."
+    yield _compose_outputs(selected_file, show_ground_truth)
 
 
 def _guess_language(path_hint: str, explicit_language: str) -> str:
@@ -1223,38 +1335,40 @@ def toggle_action_groups(action_type: str):
     )
 
 
-with gr.Blocks(title="Dependency Security RL Console") as ui:
+with gr.Blocks(title="DepVulnEnv") as ui:
     with gr.Column(elem_classes="shell"):
         with gr.Row(elem_classes="topbar"):
             gr.HTML(
                 '<div>'
-                '<div class="brand-title">Security RL Evaluation Console</div>'
-                '<div class="brand-subtitle">OpenEnv-compatible reset(), state(), step(), reward, and rollout analysis for dependency security tasks.</div>'
+                '<div class="brand-title">DepVulnEnv — RL Environment</div>'
+                '<div class="brand-subtitle">Dependency vulnerability triage · Observation → Action → Reward loop</div>'
                 "</div>"
             )
-            status_label = gr.Textbox(value="READY", label="Environment status", interactive=False, scale=0)
+            status_label = gr.Textbox(value="RUNNING", label="Run status", interactive=False, scale=0)
 
         with gr.Row(elem_classes="shell-content"):
             with gr.Column(scale=1, elem_classes="sidebar"):
-                gr.HTML('<div class="section-title">Runtime Controls</div>')
+                gr.HTML('<div class="section-title">Environment Controls</div>')
                 task_selector = gr.Dropdown(
-                    choices=["1: Dependency identification", "2: Dependency remediation", "3: Multi-file constrained remediation"],
-                    value="1: Dependency identification",
-                    label="Evaluation task",
+                    choices=TASK_CHOICES,
+                    value=TASK_CHOICES[0],
+                    label="Observation Space / Env Task",
                 )
-                show_ground_truth = gr.Checkbox(value=True, label="Show ground truth labels")
-                reset_button = gr.Button("reset()", variant="primary", elem_classes="gr-button-primary")
-                state_button = gr.Button("state()")
-                sidebar_step_button = gr.Button("Run step()", elem_classes="gr-button-primary")
-                auto_button = gr.Button("Auto rollout")
-                rollout_count = gr.Slider(minimum=1, maximum=10, step=1, value=3, label="Batch rollout count")
-                batch_button = gr.Button("Batch rollouts")
+                show_ground_truth = gr.Checkbox(value=True, label="Show reference labels")
+                reset_button = gr.Button("env.reset()", variant="primary", elem_classes="gr-button-primary")
+                state_button = gr.Button("env.state() (Refresh)")
 
-                gr.HTML('<div class="section-title" style="margin-top:20px;">Rollout Summary</div>')
-                rollout_summary = gr.Markdown(_rollout_summary_text(), buttons=["copy"])
+                gr.HTML('<div class="section-title" style="margin-top:16px;">Rollout Episode (Auto-Agent)</div>')
+                auto_button = gr.Button("Rollout Episode (Auto-Agent)", variant="primary", elem_classes="gr-button-primary")
+                rollout_count = gr.Slider(minimum=1, maximum=10, step=1, value=3, label="Batch size")
+                batch_button = gr.Button("Evaluate Policy (N Episodes)")
 
-            with gr.Column(scale=4):
-                with gr.Tab("Rollout"):
+                gr.HTML('<div class="section-title" style="margin-top:16px;">History Snapshot</div>')
+                rollout_summary = gr.HTML(_rollout_summary_html())
+                clear_history_button = gr.Button("Clear history")
+
+            with gr.Column(scale=4, elem_classes="main-content"):
+                with gr.Tab("Run", elem_id="tab-run"):
                     episode_header = gr.HTML(_episode_header_html(None))
                     metrics_html = gr.HTML(_metrics_html(None))
                     with gr.Row():
@@ -1263,14 +1377,14 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                             code_html = gr.HTML(_render_code([], None, []))
                         with gr.Column(scale=2):
                             with gr.Column(elem_classes="panel"):
-                                gr.HTML('<div class="section-title">Agent Analysis</div>')
-                                reasoning_md = gr.Markdown("No active rollout.", buttons=["copy"])
+                                gr.HTML('<div class="section-title">env.render() / Agent Trace</div>')
+                                reasoning_md = gr.Markdown("No active run.", buttons=["copy"])
                             with gr.Column(elem_classes=["panel", "sticky-action-panel"]):
-                                gr.HTML('<div class="section-title">step()</div>')
+                                gr.HTML('<div class="section-title">Submit Action</div>')
                                 action_type = gr.Radio(
                                     choices=list(ACTION_LABELS.keys()),
-                                    value="Identify finding",
-                                    label="Action",
+                                    value="Confirm finding",
+                                    label="Action Space",
                                 )
                                 with gr.Group(visible=True) as identify_group:
                                     action_cve = gr.Textbox(label="CVE ID", placeholder="CVE-2024-12345")
@@ -1292,24 +1406,23 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                                         lines=3,
                                     )
                                 action_reasoning = gr.TextArea(
-                                    label="Analysis note",
-                                    placeholder="Explain the code evidence for this step.",
+                                    label="Step note",
+                                    placeholder="Explain what you observed in the code or why you chose this step.",
                                     lines=5,
                                 )
                                 with gr.Row(elem_classes="action-step-bar"):
-                                    step_button = gr.Button("step()", variant="primary", elem_classes="gr-button-primary")
-                                    step_button_secondary = gr.Button("Apply step", elem_classes="gr-button-primary")
+                                    step_button = gr.Button("env.step(action)", variant="primary", elem_classes="gr-button-primary")
 
                 with gr.Tab("State"):
                     with gr.Row():
                         with gr.Column(elem_classes="panel"):
-                            gr.HTML('<div class="section-title">Observation</div>')
+                            gr.HTML('<div class="section-title">Run Snapshot</div>')
                             observation_json = gr.JSON(value={}, buttons=["copy"])
                         with gr.Column(elem_classes="panel"):
-                            gr.HTML('<div class="section-title">State</div>')
+                            gr.HTML('<div class="section-title">Episode State</div>')
                             state_json = gr.JSON(value={}, buttons=["copy"])
                     with gr.Column(elem_classes="panel"):
-                        gr.HTML('<div class="section-title">Ground Truth Labels</div>')
+                        gr.HTML('<div class="section-title">Reference Labels</div>')
                         ground_truth_table = gr.DataFrame(
                             value=_ground_truth_dataframe(True),
                             interactive=False,
@@ -1318,7 +1431,7 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                             elem_classes="wide-scroll-table",
                         )
                     with gr.Column(elem_classes="panel"):
-                        gr.HTML('<div class="section-title">Action Labels</div>')
+                        gr.HTML('<div class="section-title">Step Log</div>')
                         trace_table = gr.DataFrame(
                             value=_trace_dataframe(),
                             interactive=False,
@@ -1327,14 +1440,15 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
                             elem_classes="wide-scroll-table",
                         )
 
-                with gr.Tab("Rollouts"):
+                with gr.Tab("History"):
                     with gr.Column(elem_classes="panel"):
-                        gr.HTML('<div class="section-title">Completed Rollouts</div>')
+                        gr.HTML('<div class="section-title">Completed Runs</div>')
                         rollout_table = gr.DataFrame(
                             value=_rollout_dataframe(),
                             interactive=False,
-                            wrap=True,
+                            wrap=False,
                             buttons=["copy", "fullscreen"],
+                            elem_classes="wide-scroll-table",
                         )
 
                 with gr.Tab("Code Review"):
@@ -1419,48 +1533,13 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
         ],
         outputs=outputs,
     )
-    step_button_secondary.click(
-        do_step,
-        inputs=[
-            action_type,
-            action_cve,
-            action_file,
-            action_line,
-            action_package,
-            action_severity,
-            target_version,
-            code_fix,
-            risk_ranking,
-            action_reasoning,
-            selected_file,
-            show_ground_truth,
-        ],
-        outputs=outputs,
-    )
-    sidebar_step_button.click(
-        do_step,
-        inputs=[
-            action_type,
-            action_cve,
-            action_file,
-            action_line,
-            action_package,
-            action_severity,
-            target_version,
-            code_fix,
-            risk_ranking,
-            action_reasoning,
-            selected_file,
-            show_ground_truth,
-        ],
-        outputs=outputs,
-    )
     auto_button.click(do_auto_rollout, inputs=[task_selector, selected_file, show_ground_truth], outputs=outputs)
     batch_button.click(
         do_batch_rollouts,
         inputs=[task_selector, rollout_count, selected_file, show_ground_truth],
         outputs=outputs,
     )
+    clear_history_button.click(do_clear_history, outputs=[rollout_table, rollout_summary])
     selected_file.change(do_state_view, inputs=[selected_file, show_ground_truth], outputs=view_outputs)
     show_ground_truth.change(do_state_view, inputs=[selected_file, show_ground_truth], outputs=view_outputs)
 
@@ -1471,9 +1550,10 @@ with gr.Blocks(title="Dependency Security RL Console") as ui:
     )
     scan_button.click(do_scan_file, inputs=scan_upload, outputs=scan_results)
 
+
 ui.css = CSS
 ui.theme = UI_THEME
 
 
 if __name__ == "__main__":
-    ui.launch(server_name="0.0.0.0", server_port=7861)
+    ui.launch(server_name="0.0.0.0", server_port=7861, css=CSS, theme=UI_THEME)
