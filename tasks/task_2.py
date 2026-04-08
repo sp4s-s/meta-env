@@ -1,61 +1,118 @@
+"""
+Task 2: Vulnerability Remediation (Medium)
+
+Agent must propose correct fixes for identified vulnerabilities.
+Scored on: correct fix version, valid replacement code, budget management.
+"""
 from __future__ import annotations
+
 from typing import Any, Dict, Tuple
+
 from .base import TaskHandler
 from env.models import Action, EngineState
 
+
 class Task2Handler(TaskHandler):
-    def _resolve(self, state: EngineState, cid: str, b: str):
-        if b: getattr(state, f"{b}_cves").append(cid)
-        state.resolved_cves.append(cid)
-        state.active_cves = [c for c in state.active_cves if c.cve_id != cid]
+    """
+    Remediation task: agent proposes fixes for code vulnerabilities.
+
+    Actions:
+    - identify: find vulns first (same as task 1)
+    - remediate: propose a fix for a specific CVE
+    - done: end episode
+
+    Scoring: fraction of vulns correctly remediated, minus budget overruns.
+    """
 
     def execute(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
         if action.action_type == "done":
             state.done = True
-            sc = len(state.resolved_cves) / max(1, state.initial_cve_count)
-            return sc, {"sc": sc}
+            sc = len(state.remediated_vulns) / max(1, state.initial_vuln_count)
+            return sc, {"sc": round(sc, 4)}
 
-        if action.action_type not in ("fix", "suppress", "accept"):
-            state.last_action_error = f"Unsupported op: {action.action_type}"
+        if action.action_type == "identify":
+            return self._handle_identify(state, action)
+
+        if action.action_type == "remediate":
+            return self._handle_remediate(state, action)
+
+        state.last_action_error = f"Unsupported: {action.action_type}"
+        return 0.0, {}
+
+    def _handle_identify(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
+        """Identification step (same logic, but lighter reward in task 2)."""
+        if not action.findings:
+            state.last_action_error = "No findings"
             return 0.0, {}
 
-        cve = next((c for c in state.active_cves if c.cve_id == action.cve_id), None)
-        if not cve:
-            state.last_action_error = "CVE not found"
+        truth = set(state.ground_truth_vulns)
+        tp = 0
+        for f in action.findings:
+            if f.cve_id in truth and f.cve_id not in state.identified_vulns:
+                state.identified_vulns.append(f.cve_id)
+                tp += 1
+            elif f.cve_id not in truth and f.cve_id not in state.false_positives:
+                state.false_positives.append(f.cve_id)
+
+        return 0.1 * tp, {"identified": tp}
+
+    def _handle_remediate(self, state: EngineState, action: Action) -> Tuple[float, Dict[str, Any]]:
+        if not action.remediation:
+            state.last_action_error = "No remediation provided"
             return 0.0, {}
 
-        r, info = 0.0, {"cid": cve.cve_id}
+        rem = action.remediation
+        cve_id = rem.cve_id
+
+        # Must be a real vuln
+        if cve_id not in state.ground_truth_vulns:
+            state.last_action_error = f"CVE {cve_id} not in ground truth"
+            return -0.15, {"error": "not_present"}
+
+        # Already fixed
+        if cve_id in state.remediated_vulns:
+            state.last_action_error = "Already remediated"
+            return -0.05, {}
+
+        # Budget check
+        if state.budget_points < 2:
+            state.last_action_error = "Insufficient budget"
+            return -0.1, {}
+        state.budget_points -= 2
+
+        # Validate fix quality
+        fix_hint = state.ground_truth_fixes.get(cve_id, "")
+        r = 0.0
+        info: Dict[str, Any] = {"cve": cve_id}
         state.last_action_error = None
 
-        if action.action_type == "fix":
-            if state.budget_points < 2:
-                state.last_action_error = "OOB budget"
-                return -0.1, {}
-            state.budget_points -= 2
-            if action.target_node == cve.target_node and action.target_version == cve.fixed_version:
-                r = 0.45
-                self._resolve(state, cve.cve_id, "")
-            else:
-                r, state.last_action_error = -0.15, "Invalid fix config"
+        # Score components:
+        # 1. Is the action type reasonable?
+        if rem.action in ("upgrade", "replace", "mitigate"):
+            r += 0.15
 
-        elif action.action_type == "suppress":
-            if cve.severity in ("LOW", "NONE") or cve.reachability_depth >= 2:
-                r = 0.18
-                self._resolve(state, cve.cve_id, "suppressed")
+        # 2. Does the target version match the known fix?
+        if rem.target_version and fix_hint:
+            # Extract version from fix hint (e.g., "Upgrade jinja2>=3.1.5" -> "3.1.5")
+            if rem.target_version in fix_hint:
+                r += 0.25
+                info["version_match"] = True
             else:
-                r, state.last_action_error = -0.25, "Ineligible for suppression"
+                r += 0.05  # partial credit for any version
+                info["version_match"] = False
 
-        elif action.action_type == "accept":
-            if cve.severity in ("MEDIUM", "LOW", "NONE"):
-                r = 0.08
-                self._resolve(state, cve.cve_id, "accepted")
-            else:
-                r, state.last_action_error = -0.2, "Risk too high for acceptance"
+        # 3. Justification quality (non-empty, references the CVE)
+        if rem.justification and len(rem.justification) > 10:
+            r += 0.05
 
-        if not state.active_cves: state.done = True
-        if state.done:
-            sc = len(state.resolved_cves) / max(1, state.initial_cve_count)
-            info["sc"] = round(sc, 4)
-            return r + sc, info
+        state.remediated_vulns.append(cve_id)
+        info["reward"] = round(r, 3)
+
+        # Episode completion
+        all_fixed = len(state.remediated_vulns) >= state.initial_vuln_count
+        if all_fixed:
+            state.done = True
+            sc = len(state.remediated_vulns) / max(1, state.initial_vuln_count)
+            return r + sc, {**info, "sc": round(sc, 4)}
 
         return r, info

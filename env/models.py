@@ -15,53 +15,67 @@ except ImportError:
         metadata: Dict[str, Any] = Field(default_factory=dict)
     class OpenEnvState(BaseModel): pass
 
-class CVEInfo(BaseModel):
-    cve_id: str
-    target_node: str
-    cvss_score: float = Field(ge=0.0, le=10.0)
-    epss_score: float = Field(ge=0.0, le=1.0)
-    epss_percentile: float = Field(ge=0.0, le=1.0, default=0.0)
-    severity: Literal["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"]
-    reachability_depth: int = Field(ge=0)
-    kev_listed: bool = False
-    vex_status: Literal["affected", "not_affected", "fixed", "under_investigation"] = "affected"
-    ssvc_decision: Literal["track", "track*", "attend", "act"] = "track"
-    fixed_version: Optional[str] = None
-    summary: str = ""
-    ecosystem: str = "PyPI"
-    package: str = ""
 
-class NodeInfo(BaseModel):
-    name: str
-    version: str
-    depth: int = Field(ge=0)
-    direct: bool
-    dependencies: List[str] = Field(default_factory=list)
-    cves: List[str] = Field(default_factory=list)
-    ecosystem: str = "PyPI"
+class CodeFile(BaseModel):
+    """A source file presented to the agent."""
+    path: str
+    content: str
+    language: Literal["python", "javascript"]
+
+
+class VulnFinding(BaseModel):
+    """Agent's claim about a vulnerability in the code."""
+    cve_id: str
+    file_path: str
+    line_number: int
+    package: str
+    severity: Literal["CRITICAL", "HIGH", "MEDIUM", "LOW", "NONE"]
+    explanation: str = ""
+
+
+class RemediationAction(BaseModel):
+    """Agent's proposed fix."""
+    cve_id: str
+    file_path: str
+    action: Literal["upgrade", "replace", "remove", "mitigate"]
+    target_version: Optional[str] = None
+    code_fix: Optional[str] = None  # replacement code snippet
+    justification: str = ""
+
+
+class Action(OpenEnvAction):
+    """
+    Agent actions for code vulnerability analysis.
+
+    - identify: submit vulnerability findings from code analysis
+    - remediate: propose a fix for a found vulnerability
+    - rank: prioritize the found vulnerabilities by risk
+    - done: signal episode end
+    """
+    action_type: Literal["identify", "remediate", "rank", "done"]
+    findings: Optional[List[VulnFinding]] = None
+    remediation: Optional[RemediationAction] = None
+    risk_ranking: Optional[List[str]] = None  # ordered CVE IDs
+    justification: Optional[str] = None
+
 
 class Observation(OpenEnvObservation):
     step: int
     max_steps: int
-    graph: List[NodeInfo]
-    active_cves: List[CVEInfo]
-    budget_points: int
-    sla_clock: int
-    info: Dict[str, Any]
-    action_history: List[Dict[str, Any]]
+    code_files: List[CodeFile]
+    known_vulns: List[str] = Field(default_factory=list)  # CVEs already identified
+    task_context: str = ""
+    budget_points: int = 0
+    sla_clock: int = 0
+    info: Dict[str, Any] = Field(default_factory=dict)
+    action_history: List[Dict[str, Any]] = Field(default_factory=list)
 
-class Action(OpenEnvAction):
-    action_type: Literal["rank", "fix", "suppress", "accept", "done"]
-    cve_rankings: Optional[List[str]] = None
-    cve_id: Optional[str] = None
-    target_node: Optional[str] = None
-    target_version: Optional[str] = None
-    justification: Optional[str] = None
 
 class Reward(BaseModel):
     value: float = Field(ge=-1.0, le=1.0)
     done: bool
     info: Dict[str, Any] = Field(default_factory=dict)
+
 
 class EngineState(OpenEnvState):
     episode_id: str
@@ -69,17 +83,31 @@ class EngineState(OpenEnvState):
     step: int = 0
     max_steps: int = 5
     scenario_idx: int = 0
-    graph: List[NodeInfo] = Field(default_factory=list)
-    active_cves: List[CVEInfo] = Field(default_factory=list)
+
+    # Code-centric state
+    code_files: List[CodeFile] = Field(default_factory=list)
+    ground_truth_vulns: List[str] = Field(default_factory=list)        # actual CVE IDs in code
+    ground_truth_lines: Dict[str, List[int]] = Field(default_factory=dict)  # cve_id -> lines
+    ground_truth_files: Dict[str, str] = Field(default_factory=dict)   # cve_id -> file path
+    ground_truth_fixes: Dict[str, str] = Field(default_factory=dict)   # cve_id -> fix hint
+    scenario_context: str = ""
+
+    # Agent progress
+    identified_vulns: List[str] = Field(default_factory=list)          # correctly identified
+    false_positives: List[str] = Field(default_factory=list)           # wrong claims
+    remediated_vulns: List[str] = Field(default_factory=list)          # successfully fixed
+    risk_ranking_score: float = 0.0
+
+    # Constraints
     budget_points: int = 0
     sla_clock: int = 0
-    resolved_cves: List[str] = Field(default_factory=list)
-    accepted_cves: List[str] = Field(default_factory=list)
-    suppressed_cves: List[str] = Field(default_factory=list)
+
+    # Bookkeeping
     total_reward: float = 0.0
     done: bool = False
     last_action_error: Optional[str] = None
     last_info: Dict[str, Any] = Field(default_factory=dict)
-    initial_cve_count: int = 0
+    initial_vuln_count: int = 0
     best_task_score: float = 0.0
     action_history: List[Dict[str, Any]] = Field(default_factory=list)
+    difficulty: float = 0.0
