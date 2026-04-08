@@ -1,0 +1,13 @@
+[
+  {
+    "cve_id": "CVE-2024-28219",
+    "osv_id": "GHSA-44wm-f244-xhp3",
+    "summary": "Pillow buffer overflow vulnerability",
+    "cvss_score": 6.5,
+    "severity": "MEDIUM",
+    "fixed_version": "10.3.0",
+    "published": "2024-04-03T03:30:30Z",
+    "ecosystem": "PyPI",
+    "package": "pillow"
+  }
+]

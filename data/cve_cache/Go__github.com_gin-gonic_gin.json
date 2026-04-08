@@ -1,0 +1,57 @@
+[
+  {
+    "cve_id": "CVE-2023-29401",
+    "osv_id": "GHSA-2c4m-59x9-fr2g",
+    "summary": "Gin Web Framework does not properly sanitize filename parameter of Context.FileAttachment function",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "1.9.1",
+    "published": "2023-05-12T20:19:25Z",
+    "ecosystem": "Go",
+    "package": "github.com/gin-gonic/gin"
+  },
+  {
+    "cve_id": "CVE-2023-26125",
+    "osv_id": "GHSA-3vp4-m3rf-835h",
+    "summary": "Improper input validation in github.com/gin-gonic/gin",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "1.9.0",
+    "published": "2023-05-04T06:30:12Z",
+    "ecosystem": "Go",
+    "package": "github.com/gin-gonic/gin"
+  },
+  {
+    "cve_id": "CVE-2020-28483",
+    "osv_id": "GHSA-h395-qcrw-5vmq",
+    "summary": "Inconsistent Interpretation of HTTP Requests in github.com/gin-gonic/gin",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.7.7",
+    "published": "2021-06-23T17:53:21Z",
+    "ecosystem": "Go",
+    "package": "github.com/gin-gonic/gin"
+  },
+  {
+    "cve_id": "CVE-2020-28483",
+    "osv_id": "GO-2021-0052",
+    "summary": "Inconsistent interpretation of HTTP Requests in github.com/gin-gonic/gin",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "1.7.7",
+    "published": "2021-04-14T20:04:52Z",
+    "ecosystem": "Go",
+    "package": "github.com/gin-gonic/gin"
+  },
+  {
+    "cve_id": "CVE-2023-29401",
+    "osv_id": "GO-2023-1737",
+    "summary": "Improper handling of filenames in Content-Disposition HTTP header in github.com/gin-gonic/gin",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "1.9.1",
+    "published": "2023-05-11T18:59:56Z",
+    "ecosystem": "Go",
+    "package": "github.com/gin-gonic/gin"
+  }
+]

@@ -1,0 +1,222 @@
+[
+  {
+    "cve_id": "CVE-2024-45230",
+    "osv_id": "GHSA-5hgc-2vfp-mqvc",
+    "summary": "Django vulnerable to denial-of-service attack via the urlize() and urlizetrunc() template filters",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.1.1",
+    "published": "2024-10-08T18:33:13Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2025-57833",
+    "osv_id": "GHSA-6w2r-r2m5-xq5w",
+    "summary": "Django is subject to SQL injection through its column aliases",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "4.2.24",
+    "published": "2025-09-08T18:31:31Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-41990",
+    "osv_id": "GHSA-795c-9xpc-xw6g",
+    "summary": "Django vulnerable to a denial-of-service attack",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.8",
+    "published": "2024-08-07T15:30:42Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2025-48432",
+    "osv_id": "GHSA-7xr5-9hcq-chf9",
+    "summary": "Django Improper Output Neutralization for Logs vulnerability",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "5.2.2",
+    "published": "2025-06-05T03:30:58Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-53907",
+    "osv_id": "GHSA-8498-2h75-472j",
+    "summary": "Django denial-of-service in django.utils.html.strip_tags()",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.1.4",
+    "published": "2024-12-06T12:30:47Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-39330",
+    "osv_id": "GHSA-9jmf-237g-qf46",
+    "summary": "Django Path Traversal vulnerability",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.0.7",
+    "published": "2024-07-10T06:33:52Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-39614",
+    "osv_id": "GHSA-f6f8-9mx6-9mx2",
+    "summary": "Django vulnerable to Denial of Service",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.0.7",
+    "published": "2024-07-10T06:33:52Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2025-64459",
+    "osv_id": "GHSA-frmv-pr5f-9mcr",
+    "summary": "Django vulnerable to SQL injection via _connector keyword argument in QuerySet and Q objects.",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.2.8",
+    "published": "2025-11-05T15:31:07Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-41989",
+    "osv_id": "GHSA-jh75-99hh-qvx9",
+    "summary": "Django memory consumption vulnerability",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.8",
+    "published": "2024-08-07T15:30:42Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-53908",
+    "osv_id": "GHSA-m9g8-fxxm-xg86",
+    "summary": "Django SQL injection in HasKey(lhs, rhs) on Oracle",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.0.10",
+    "published": "2024-12-06T12:30:47Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2025-26699",
+    "osv_id": "GHSA-p3fp-8748-vqfq",
+    "summary": "Django vulnerable to Allocation of Resources Without Limits or Throttling",
+    "cvss_score": 7.5,
+    "severity": "HIGH",
+    "fixed_version": "4.2.20",
+    "published": "2025-03-06T21:31:26Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-42005",
+    "osv_id": "GHSA-pv4p-cwwg-4rph",
+    "summary": "Django SQL injection vulnerability",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.0.8",
+    "published": "2024-08-07T15:30:42Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-56374",
+    "osv_id": "GHSA-qcgg-j2x8-h9g8",
+    "summary": "Django has a potential denial-of-service vulnerability in IPv6 validation",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.1.5",
+    "published": "2025-01-14T21:31:47Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-38875",
+    "osv_id": "GHSA-qg2p-9jwr-mmqf",
+    "summary": "Django vulnerable to Denial of Service",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "4.2.14",
+    "published": "2024-07-10T06:33:52Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2025-64458",
+    "osv_id": "GHSA-qw25-v68c-qjf3",
+    "summary": "Django has a denial-of-service vulnerability in HttpResponseRedirect and HttpResponsePermanentRedirect on Windows",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.2.8",
+    "published": "2025-11-05T15:31:07Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-41991",
+    "osv_id": "GHSA-r836-hh6v-rg5g",
+    "summary": "Django vulnerable to denial-of-service attack",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.8",
+    "published": "2024-08-07T15:30:42Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-45231",
+    "osv_id": "GHSA-rrqc-c2jx-6jgv",
+    "summary": "Django allows enumeration of user e-mail addresses",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "5.1.1",
+    "published": "2024-10-08T18:33:13Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-27351",
+    "osv_id": "GHSA-vm8q-m57g-pff3",
+    "summary": "Regular expression denial-of-service in Django",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "3.2.25",
+    "published": "2024-03-15T21:30:43Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2025-27556",
+    "osv_id": "GHSA-wqfg-m96j-85vm",
+    "summary": "Django Potential Denial of Service (DoS) on Windows ",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.14",
+    "published": "2025-04-02T15:31:37Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  },
+  {
+    "cve_id": "CVE-2024-39329",
+    "osv_id": "GHSA-x7q2-wr7g-xqmf",
+    "summary": "Django vulnerable to user enumeration attack",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.7",
+    "published": "2024-07-10T06:33:52Z",
+    "ecosystem": "PyPI",
+    "package": "django"
+  }
+]

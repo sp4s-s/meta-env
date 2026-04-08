@@ -1,0 +1,13 @@
+[
+  {
+    "cve_id": "GHSA-67mh-4wv8-2f99",
+    "osv_id": "GHSA-67mh-4wv8-2f99",
+    "summary": "esbuild enables any website to send any requests to the development server and read the response",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "0.25.0",
+    "published": "2025-02-10T17:48:07Z",
+    "ecosystem": "npm",
+    "package": "esbuild"
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "cve_id": "CVE-2024-3651",
+    "osv_id": "GHSA-jjg7-2v4v-x38h",
+    "summary": "Internationalized Domain Names in Applications (IDNA) vulnerable to denial of service from specially crafted inputs to idna.encode",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "3.7",
+    "published": "2024-04-11T21:32:40Z",
+    "ecosystem": "PyPI",
+    "package": "idna"
+  },
+  {
+    "cve_id": "CVE-2024-3651",
+    "osv_id": "PYSEC-2024-60",
+    "summary": "A vulnerability was identified in the kjd/idna library, specifically within the `idna.encode()` function, affecting version 3.6. The issue arises from the function's handling of crafted input strings,",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1d365e17e10d72d0b7876316fc7b9ca0eebdd38d",
+    "published": "2024-07-07T18:15:00Z",
+    "ecosystem": "PyPI",
+    "package": "idna"
+  }
+]

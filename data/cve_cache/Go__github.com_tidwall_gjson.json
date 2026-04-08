@@ -1,0 +1,90 @@
+[
+  {
+    "cve_id": "CVE-2020-36067",
+    "osv_id": "GHSA-p64j-r5f4-pwwx",
+    "summary": "Improper Validation of Array Index in GJSON",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.6.6",
+    "published": "2023-02-06T23:38:18Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2021-42248",
+    "osv_id": "GHSA-ppj4-34rq-v8j9",
+    "summary": "github.com/tidwall/gjson Vulnerable to REDoS attack",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.9.3",
+    "published": "2021-10-25T19:43:15Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2020-35380",
+    "osv_id": "GHSA-w942-gw6m-p62c",
+    "summary": "Denial of service in GJSON",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.6.4",
+    "published": "2021-06-23T17:53:05Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2020-36066",
+    "osv_id": "GHSA-wjm3-fq3r-5x46",
+    "summary": "github.com/tidwall/gjson is vulnerable to Denial of service",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.6.5",
+    "published": "2021-05-18T21:07:54Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2020-36067",
+    "osv_id": "GO-2021-0054",
+    "summary": "Panic due to improper input validation in ForEach in github.com/tidwall/gjson",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "1.6.6",
+    "published": "2021-04-14T20:04:52Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2020-35380",
+    "osv_id": "GO-2021-0059",
+    "summary": "Panic due to improper input validation in Get in github.com/tidwall/gjson",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "1.6.4",
+    "published": "2021-04-14T20:04:52Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2021-42248",
+    "osv_id": "GO-2021-0265",
+    "summary": "Denial of service via maliciously crafted path in github.com/tidwall/gjson",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "1.9.3",
+    "published": "2022-08-15T18:06:07Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  },
+  {
+    "cve_id": "CVE-2020-36066",
+    "osv_id": "GO-2022-0957",
+    "summary": "Denial of service via maliciously crafted JSON in github.com/tidwall/gjson",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "1.6.5",
+    "published": "2022-08-25T06:28:20Z",
+    "ecosystem": "Go",
+    "package": "github.com/tidwall/gjson"
+  }
+]

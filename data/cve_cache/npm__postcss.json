@@ -1,0 +1,13 @@
+[
+  {
+    "cve_id": "CVE-2023-44270",
+    "osv_id": "CVE-2023-44270",
+    "summary": "Newline injection in CSS parsing",
+    "cvss_score": 5.3,
+    "severity": "MEDIUM",
+    "fixed_version": "8.4.32",
+    "published": "2024-01-01T00:00:00Z",
+    "ecosystem": "npm",
+    "package": "postcss"
+  }
+]

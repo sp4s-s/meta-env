@@ -1,0 +1,35 @@
+[
+  {
+    "cve_id": "CVE-2025-47273",
+    "osv_id": "GHSA-5rjg-fvgr-3xxf",
+    "summary": "setuptools has a path traversal vulnerability in PackageIndex.download that leads to Arbitrary File Write",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "78.1.1",
+    "published": "2025-05-19T16:52:43Z",
+    "ecosystem": "PyPI",
+    "package": "setuptools"
+  },
+  {
+    "cve_id": "CVE-2024-6345",
+    "osv_id": "GHSA-cx63-2mw6-8hw5",
+    "summary": "setuptools vulnerable to Command Injection via package URL",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "70.0.0",
+    "published": "2024-07-15T03:30:57Z",
+    "ecosystem": "PyPI",
+    "package": "setuptools"
+  },
+  {
+    "cve_id": "CVE-2025-47273",
+    "osv_id": "PYSEC-2025-49",
+    "summary": "setuptools is a package that allows users to download, build, install, upgrade, and uninstall Python packages. A path traversal vulnerability in `PackageIndex` is present in setuptools prior to versio",
+    "cvss_score": 9.0,
+    "severity": "CRITICAL",
+    "fixed_version": "250a6d17978f9f6ac3ac887091f2d32886fbbb0b",
+    "published": "2025-05-17T16:15:19Z",
+    "ecosystem": "PyPI",
+    "package": "setuptools"
+  }
+]

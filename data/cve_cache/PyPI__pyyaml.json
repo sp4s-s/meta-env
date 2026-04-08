@@ -1,0 +1,13 @@
+[
+  {
+    "cve_id": "CVE-2024-20060",
+    "osv_id": "CVE-2024-20060",
+    "summary": "Unsafe YAML load arbitrary code",
+    "cvss_score": 7.8,
+    "severity": "HIGH",
+    "fixed_version": "6.0.2",
+    "published": "2024-01-01T00:00:00Z",
+    "ecosystem": "PyPI",
+    "package": "pyyaml"
+  }
+]

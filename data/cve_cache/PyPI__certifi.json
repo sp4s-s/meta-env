@@ -1,0 +1,24 @@
+[
+  {
+    "cve_id": "CVE-2024-39689",
+    "osv_id": "GHSA-248v-346w-9cwc",
+    "summary": "Certifi removes GLOBALTRUST root certificate",
+    "cvss_score": 3.0,
+    "severity": "LOW",
+    "fixed_version": "2024.7.4",
+    "published": "2024-07-05T20:06:40Z",
+    "ecosystem": "PyPI",
+    "package": "certifi"
+  },
+  {
+    "cve_id": "CVE-2024-39689",
+    "osv_id": "PYSEC-2024-230",
+    "summary": "Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi starting in 2021.05.30 and prior to 2024.",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "bd8153872e9c6fc98f4023df9c2deaffea2fa463",
+    "published": "2024-07-05T19:15:10Z",
+    "ecosystem": "PyPI",
+    "package": "certifi"
+  }
+]

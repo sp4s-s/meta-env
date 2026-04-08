@@ -1,0 +1,13 @@
+[
+  {
+    "cve_id": "CVE-2022-46175",
+    "osv_id": "CVE-2022-46175",
+    "summary": "Prototype pollution via parse",
+    "cvss_score": 8.8,
+    "severity": "HIGH",
+    "fixed_version": "2.2.3",
+    "published": "2024-01-01T00:00:00Z",
+    "ecosystem": "npm",
+    "package": "json5"
+  }
+]

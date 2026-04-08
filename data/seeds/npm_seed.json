@@ -1,0 +1,30 @@
+{
+  "name": "vuln-audit",
+  "version": "1.0.0",
+  "lockfileVersion": 2,
+  "packages": {
+    "": { "name": "vuln-audit", "version": "1.0.0" },
+    "node_modules/express": { "version": "4.19.1", "dependencies": { "body-parser": "1.20.1", "cookie": "0.6.0", "send": "0.18.0" } },
+    "node_modules/axios": { "version": "1.6.7", "dependencies": {} },
+    "node_modules/lodash": { "version": "4.17.20", "dependencies": {} },
+    "node_modules/tar": { "version": "6.2.0", "dependencies": {} },
+    "node_modules/ws": { "version": "8.16.0", "dependencies": {} },
+    "node_modules/braces": { "version": "3.0.2", "dependencies": {} },
+    "node_modules/json5": { "version": "2.2.2", "dependencies": {} },
+    "node_modules/node-fetch": { "version": "3.3.1", "dependencies": {} },
+    "node_modules/send": { "version": "0.18.0", "dependencies": {} },
+    "node_modules/cookie": { "version": "0.6.0", "dependencies": {} },
+    "node_modules/body-parser": { "version": "1.20.1", "dependencies": {} },
+    "node_modules/path-to-regexp": { "version": "6.2.1", "dependencies": {} },
+    "node_modules/micromatch": { "version": "4.0.5", "dependencies": { "braces": "3.0.2" } },
+    "node_modules/elliptic": { "version": "6.5.4", "dependencies": {} },
+    "node_modules/nanoid": { "version": "3.3.6", "dependencies": {} },
+    "node_modules/cross-spawn": { "version": "7.0.3", "dependencies": {} },
+    "node_modules/undici": { "version": "6.6.0", "dependencies": {} },
+    "node_modules/esbuild": { "version": "0.20.0", "dependencies": {} },
+    "node_modules/ip": { "version": "2.0.0", "dependencies": {} },
+    "node_modules/follow-redirects": { "version": "1.15.5", "dependencies": {} },
+    "node_modules/postcss": { "version": "8.4.31", "dependencies": {} },
+    "node_modules/semver": { "version": "7.5.4", "dependencies": {} }
+  }
+}

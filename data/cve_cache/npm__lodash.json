@@ -1,0 +1,57 @@
+[
+  {
+    "cve_id": "CVE-2020-28500",
+    "osv_id": "GHSA-29mw-wpgm-hmr9",
+    "summary": "Regular Expression Denial of Service (ReDoS) in lodash",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "4.17.21",
+    "published": "2022-01-06T20:30:46Z",
+    "ecosystem": "npm",
+    "package": "lodash"
+  },
+  {
+    "cve_id": "CVE-2021-23337",
+    "osv_id": "GHSA-35jh-r3h4-6jhm",
+    "summary": "Command Injection in lodash",
+    "cvss_score": 9.0,
+    "severity": "CRITICAL",
+    "fixed_version": "4.17.21",
+    "published": "2021-05-06T16:05:51Z",
+    "ecosystem": "npm",
+    "package": "lodash"
+  },
+  {
+    "cve_id": "CVE-2026-2950",
+    "osv_id": "GHSA-f23m-r3pf-42rh",
+    "summary": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "4.18.0",
+    "published": "2026-04-01T23:50:27Z",
+    "ecosystem": "npm",
+    "package": "lodash"
+  },
+  {
+    "cve_id": "CVE-2026-4800",
+    "osv_id": "GHSA-r5fr-rjxr-66jc",
+    "summary": "lodash vulnerable to Code Injection via `_.template` imports key names",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "4.18.0",
+    "published": "2026-04-01T23:51:12Z",
+    "ecosystem": "npm",
+    "package": "lodash"
+  },
+  {
+    "cve_id": "CVE-2025-13465",
+    "osv_id": "GHSA-xxjr-mmjv-4gpg",
+    "summary": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "4.17.23",
+    "published": "2026-01-21T23:01:22Z",
+    "ecosystem": "npm",
+    "package": "lodash"
+  }
+]

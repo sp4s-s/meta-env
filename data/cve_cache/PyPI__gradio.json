@@ -1,0 +1,222 @@
+[
+  {
+    "cve_id": "GHSA-26jh-r8g2-6fpr",
+    "osv_id": "GHSA-26jh-r8g2-6fpr",
+    "summary": "Gradio's dropdown component pre-process step does not limit the values to those in the dropdown list",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T22:11:29Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47871",
+    "osv_id": "GHSA-279j-x4gx-hfrh",
+    "summary": "Gradio uses insecure communication between the FRP client and server",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T22:08:51Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47166",
+    "osv_id": "GHSA-37qc-qgx6-9xjv",
+    "summary": "Gradio has a one-level read path traversal in `/custom_component`",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "4.44.0",
+    "published": "2024-10-10T21:36:43Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2026-28414",
+    "osv_id": "GHSA-39mp-8hj3-5c49",
+    "summary": "Gradio is Vulnerable to Absolute Path Traversal on Windows with Python 3.13+",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "6.7.0",
+    "published": "2026-03-01T01:28:41Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47084",
+    "osv_id": "GHSA-3c67-5hwx-f6wx",
+    "summary": "Gradios's CORS origin validation is not performed when the request has a cookie",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "4.44.0",
+    "published": "2024-10-10T21:20:06Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-48052",
+    "osv_id": "GHSA-3gf9-wv65-gwh9",
+    "summary": "gradio Server Side Request Forgery vulnerability",
+    "cvss_score": 9.0,
+    "severity": "CRITICAL",
+    "fixed_version": null,
+    "published": "2024-11-05T00:31:28Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-1727",
+    "osv_id": "GHSA-48cq-79qq-6f7x",
+    "summary": "Gradio applications running locally vulnerable to 3rd party websites accessing routes and uploading files",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "4.19.2",
+    "published": "2024-05-21T14:43:50Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47868",
+    "osv_id": "GHSA-4q3c-cj7g-jcwf",
+    "summary": "Gradio has several components with post-process steps allow arbitrary file leaks",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T22:03:03Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47167",
+    "osv_id": "GHSA-576c-3j53-r9jj",
+    "summary": "Gradio vulnerable to SSRF in the path parameter of /queue/join",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T22:01:44Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-8966",
+    "osv_id": "GHSA-5cpq-9538-jm2j",
+    "summary": "Gradio DOS in multipart boundry while uploading the file",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": null,
+    "published": "2025-03-20T12:32:49Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-4941",
+    "osv_id": "GHSA-6v6g-j5fq-hpvw",
+    "summary": "Local file inclusion in gradio",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "4.31.3",
+    "published": "2024-06-06T18:30:58Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47164",
+    "osv_id": "GHSA-77xq-6g77-h274",
+    "summary": "Gradio's `is_in_or_equal` function may be bypassed",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T21:27:47Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-8021",
+    "osv_id": "GHSA-7v2w-h4gh-w5cv",
+    "summary": "Gradio Vulnerable to Open Redirect",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": null,
+    "published": "2025-03-20T12:32:47Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-10569",
+    "osv_id": "GHSA-7xmc-vhjp-qv5q",
+    "summary": "Gradio Vulnerable to Denial of Service (DoS) via Crafted Zip Bomb",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": null,
+    "published": "2025-03-20T12:32:39Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47165",
+    "osv_id": "GHSA-89v2-pqfv-c5r9",
+    "summary": "Gradio's CORS origin validation accepts the null origin",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T21:36:36Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47867",
+    "osv_id": "GHSA-8c87-gvhj-xm8m",
+    "summary": "Gradio lacks integrity checking on the downloaded FRP client",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T22:02:52Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2025-48889",
+    "osv_id": "GHSA-8jw3-6x8j-v96g",
+    "summary": "Gradio Allows Unauthorized File Copy via Path Manipulation",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.31.0",
+    "published": "2025-05-29T22:36:59Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-4325",
+    "osv_id": "GHSA-973g-55hp-3frw",
+    "summary": "Server-Side Request Forgery in gradio",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": null,
+    "published": "2024-06-06T18:30:58Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-4940",
+    "osv_id": "GHSA-g6c9-f4xm-9j4x",
+    "summary": "Open redirect in gradio",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": null,
+    "published": "2024-06-22T06:30:37Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  },
+  {
+    "cve_id": "CVE-2024-47872",
+    "osv_id": "GHSA-gvv6-33j7-884g",
+    "summary": "Gradio has an XSS on every Gradio server via upload of HTML files, JS files, or SVG files",
+    "cvss_score": 7.5,
+    "severity": "HIGH",
+    "fixed_version": "5.0.0",
+    "published": "2024-10-10T22:09:44Z",
+    "ecosystem": "PyPI",
+    "package": "gradio"
+  }
+]

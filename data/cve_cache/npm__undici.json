@@ -1,0 +1,134 @@
+[
+  {
+    "cve_id": "CVE-2026-1525",
+    "osv_id": "GHSA-2mjp-6q6p-2qxm",
+    "summary": "Undici has an HTTP Request/Response Smuggling issue",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "6.24.0",
+    "published": "2026-03-13T20:07:03Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2024-24758",
+    "osv_id": "GHSA-3787-6prv-h9w3",
+    "summary": "Undici proxy-authorization header not cleared on cross-origin redirect in fetch",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.28.3",
+    "published": "2024-02-16T16:02:52Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2026-1527",
+    "osv_id": "GHSA-4992-7rv2-5pvq",
+    "summary": "Undici has CRLF Injection in undici via `upgrade` option",
+    "cvss_score": 7.5,
+    "severity": "HIGH",
+    "fixed_version": "6.24.0",
+    "published": "2026-03-13T20:41:26Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2024-24750",
+    "osv_id": "GHSA-9f24-jqhm-jfcw",
+    "summary": "fetch(url) leads to a memory leak in undici",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "6.6.1",
+    "published": "2024-02-16T15:59:38Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2024-30261",
+    "osv_id": "GHSA-9qxr-qj54-h672",
+    "summary": "Undici's fetch with integrity option is too lax when algorithm is specified but hash value is in incorrect",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.28.4",
+    "published": "2024-04-04T14:20:54Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2025-22150",
+    "osv_id": "GHSA-c76h-2ccp-4975",
+    "summary": "Use of Insufficiently Random Values in undici",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "5.28.5",
+    "published": "2025-01-21T21:10:47Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2025-47279",
+    "osv_id": "GHSA-cxrh-j4jr-qwg3",
+    "summary": "undici Denial of Service attack via bad certificate data",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.29.0",
+    "published": "2025-05-15T14:15:06Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2026-1528",
+    "osv_id": "GHSA-f269-vfmq-vjvj",
+    "summary": "Undici: Malicious WebSocket 64-bit length overflows parser and crashes the client",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "6.24.0",
+    "published": "2026-03-13T20:07:26Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2026-22036",
+    "osv_id": "GHSA-g9mf-h72j-4rw9",
+    "summary": "Undici has an unbounded decompression chain in HTTP responses on Node.js Fetch API via Content-Encoding leads to resource exhaustion",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "7.18.2",
+    "published": "2026-01-14T21:06:08Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2024-30260",
+    "osv_id": "GHSA-m4v8-wqvr-p9f7",
+    "summary": "Undici's Proxy-Authorization header not cleared on cross-origin redirect for dispatch, request, stream, pipeline",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "5.28.4",
+    "published": "2024-04-04T14:20:39Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2026-2229",
+    "osv_id": "GHSA-v9p9-hfj2-hcw8",
+    "summary": "Undici has Unhandled Exception in WebSocket Client Due to Invalid server_max_window_bits Validation",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "6.24.0",
+    "published": "2026-03-13T20:41:41Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  },
+  {
+    "cve_id": "CVE-2026-1526",
+    "osv_id": "GHSA-vrm6-8vpv-qv8q",
+    "summary": "Undici has Unbounded Memory Consumption in WebSocket permessage-deflate Decompression",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "6.24.0",
+    "published": "2026-03-13T20:41:56Z",
+    "ecosystem": "npm",
+    "package": "undici"
+  }
+]

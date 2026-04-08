@@ -1,0 +1,24 @@
+[
+  {
+    "cve_id": "CVE-2020-26160",
+    "osv_id": "GHSA-w73w-5m7g-f7qc",
+    "summary": "Authorization bypass in github.com/dgrijalva/jwt-go",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": null,
+    "published": "2021-05-18T21:08:21Z",
+    "ecosystem": "Go",
+    "package": "github.com/dgrijalva/jwt-go"
+  },
+  {
+    "cve_id": "CVE-2020-26160",
+    "osv_id": "GO-2020-0017",
+    "summary": "Authorization bypass in github.com/dgrijalva/jwt-go",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": null,
+    "published": "2021-04-14T20:04:52Z",
+    "ecosystem": "Go",
+    "package": "github.com/dgrijalva/jwt-go"
+  }
+]

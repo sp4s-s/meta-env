@@ -27,6 +27,9 @@ class CVEInfo(BaseModel):
     vex_status: Literal["affected", "not_affected", "fixed", "under_investigation"] = "affected"
     ssvc_decision: Literal["track", "track*", "attend", "act"] = "track"
     fixed_version: Optional[str] = None
+    summary: str = ""
+    ecosystem: str = "PyPI"
+    package: str = ""
 
 class NodeInfo(BaseModel):
     name: str
@@ -35,6 +38,7 @@ class NodeInfo(BaseModel):
     direct: bool
     dependencies: List[str] = Field(default_factory=list)
     cves: List[str] = Field(default_factory=list)
+    ecosystem: str = "PyPI"
 
 class Observation(OpenEnvObservation):
     step: int

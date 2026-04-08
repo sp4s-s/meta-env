@@ -1,0 +1,24 @@
+[
+  {
+    "cve_id": "CVE-2024-29415",
+    "osv_id": "GHSA-2p57-rm9w-gvfp",
+    "summary": "ip SSRF improper categorization in isPublic",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": null,
+    "published": "2024-06-02T22:29:29Z",
+    "ecosystem": "npm",
+    "package": "ip"
+  },
+  {
+    "cve_id": "CVE-2023-42282",
+    "osv_id": "GHSA-78xj-cgh5-2h22",
+    "summary": "NPM IP package incorrectly identifies some private IP addresses as public",
+    "cvss_score": 3.0,
+    "severity": "LOW",
+    "fixed_version": "2.0.1",
+    "published": "2024-02-08T18:30:39Z",
+    "ecosystem": "npm",
+    "package": "ip"
+  }
+]

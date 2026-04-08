@@ -1,0 +1,79 @@
+[
+  {
+    "cve_id": "CVE-2024-26130",
+    "osv_id": "GHSA-6vqw-3v5j-54x4",
+    "summary": "cryptography NULL pointer dereference with pkcs12.serialize_key_and_certificates when called with a non-matching certificate and private key and an hmac_hash override",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "42.0.4",
+    "published": "2024-02-21T18:04:40Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  },
+  {
+    "cve_id": "CVE-2024-12797",
+    "osv_id": "GHSA-79v4-65xg-pq4g",
+    "summary": "Vulnerable OpenSSL included in cryptography wheels",
+    "cvss_score": 3.0,
+    "severity": "LOW",
+    "fixed_version": "44.0.1",
+    "published": "2025-02-11T18:06:42Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  },
+  {
+    "cve_id": "CVE-2024-0727",
+    "osv_id": "GHSA-9v9h-cgj8-h64p",
+    "summary": "Null pointer dereference in PKCS12 parsing",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "42.0.2",
+    "published": "2024-01-26T09:30:23Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  },
+  {
+    "cve_id": "GHSA-h4gh-qq45-vh27",
+    "osv_id": "GHSA-h4gh-qq45-vh27",
+    "summary": "pyca/cryptography has a vulnerable OpenSSL included in cryptography wheels",
+    "cvss_score": 6.0,
+    "severity": "MEDIUM",
+    "fixed_version": "43.0.1",
+    "published": "2024-09-03T21:59:48Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  },
+  {
+    "cve_id": "CVE-2026-34073",
+    "osv_id": "GHSA-m959-cc7f-wv43",
+    "summary": "cryptography has incomplete DNS name constraint enforcement on peer names",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "46.0.6",
+    "published": "2026-03-27T19:56:21Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  },
+  {
+    "cve_id": "CVE-2026-26007",
+    "osv_id": "GHSA-r6ph-v2qm-q3c2",
+    "summary": "cryptography Vulnerable to a Subgroup Attack Due to Missing Subgroup Validation for SECT Curves",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "46.0.5",
+    "published": "2026-02-10T21:27:06Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  },
+  {
+    "cve_id": "CVE-2024-26130",
+    "osv_id": "PYSEC-2024-225",
+    "summary": "cryptography is a package designed to expose cryptographic primitives and recipes to Python developers. Starting in version 38.0.0 and prior to version 42.0.4, if `pkcs12.serialize_key_and_certificate",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "97d231672763cdb5959a3b191e692a362f1b9e55",
+    "published": "2024-02-21T17:15:09Z",
+    "ecosystem": "PyPI",
+    "package": "cryptography"
+  }
+]

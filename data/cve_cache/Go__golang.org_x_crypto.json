@@ -1,0 +1,200 @@
+[
+  {
+    "cve_id": "CVE-2020-29652",
+    "osv_id": "GHSA-3vm4-22fp-5rfm",
+    "summary": "golang.org/x/crypto/ssh NULL Pointer Dereference vulnerability",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.0.0-20201216223049-8b5274cf687f",
+    "published": "2022-05-24T22:01:25Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2023-48795",
+    "osv_id": "GHSA-45x7-px36-x8w8",
+    "summary": "Prefix Truncation Attack against ChaCha20-Poly1305 and Encrypt-then-MAC aka Terrapin",
+    "cvss_score": 8.5,
+    "severity": "HIGH",
+    "fixed_version": "0.17.0",
+    "published": "2023-12-18T19:22:09Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2022-27191",
+    "osv_id": "GHSA-8c26-wmh5-6g9v",
+    "summary": "golang.org/x/crypto/ssh Denial of service via crafted Signer",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.0.0-20220314234659-1baeb1ce4c0b",
+    "published": "2022-03-19T00:01:02Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-47914",
+    "osv_id": "GHSA-f6x5-jh6r-wrfv",
+    "summary": "golang.org/x/crypto/ssh/agent vulnerable to panic if message is malformed due to out of bounds read",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "0.45.0",
+    "published": "2025-11-19T23:16:40Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2021-43565",
+    "osv_id": "GHSA-gwc9-m7rh-j2ww",
+    "summary": "x/crypto/ssh vulnerable to panic via malformed packets",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.0.0-20211202192323-5770296d904e",
+    "published": "2022-09-07T00:01:52Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-22869",
+    "osv_id": "GHSA-hcg3-q754-cr77",
+    "summary": "golang.org/x/crypto Vulnerable to Denial of Service (DoS) via Slow or Incomplete Key Exchange",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.35.0",
+    "published": "2025-04-12T00:30:26Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-58181",
+    "osv_id": "GHSA-j5w8-q4qc-rx2x",
+    "summary": "golang.org/x/crypto/ssh allows an attacker to cause unbounded memory consumption",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "0.45.0",
+    "published": "2025-11-19T23:01:20Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2024-45337",
+    "osv_id": "GHSA-v778-237x-gjrc",
+    "summary": "Misuse of ServerConfig.PublicKeyCallback may cause authorization bypass in golang.org/x/crypto",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.31.0",
+    "published": "2024-12-11T22:03:04Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2020-29652",
+    "osv_id": "GO-2021-0227",
+    "summary": "Panic on crafted authentication request message in golang.org/x/crypto/ssh",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.0.0-20201216223049-8b5274cf687f",
+    "published": "2022-02-17T17:35:32Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2022-27191",
+    "osv_id": "GO-2021-0356",
+    "summary": "Denial of service via crafted Signer in golang.org/x/crypto/ssh",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.0.0-20220314234659-1baeb1ce4c0b",
+    "published": "2022-04-25T20:38:40Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2021-43565",
+    "osv_id": "GO-2022-0968",
+    "summary": "Panic on malformed packets in golang.org/x/crypto/ssh",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.0.0-20211202192323-5770296d904e",
+    "published": "2022-09-13T03:32:38Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2023-48795",
+    "osv_id": "GO-2023-2402",
+    "summary": "Man-in-the-middle attacker can compromise integrity of secure channel in golang.org/x/crypto",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.17.0",
+    "published": "2023-12-18T21:18:26Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2022-30636",
+    "osv_id": "GO-2024-2961",
+    "summary": "Limited directory traversal vulnerability on Windows in golang.org/x/crypto",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.0.0-20220525230936-793ad666bf5e",
+    "published": "2024-07-02T19:27:52Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2024-45337",
+    "osv_id": "GO-2024-3321",
+    "summary": "Misuse of connection.serverAuthenticate may cause authorization bypass in golang.org/x/crypto",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.31.0",
+    "published": "2024-12-11T18:40:19Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-22869",
+    "osv_id": "GO-2025-3487",
+    "summary": "Potential denial of service in golang.org/x/crypto",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.35.0",
+    "published": "2025-02-26T02:51:51Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-47913",
+    "osv_id": "GO-2025-4116",
+    "summary": "Potential denial of service in golang.org/x/crypto/ssh/agent",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.43.0",
+    "published": "2025-11-13T21:12:03Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-58181",
+    "osv_id": "GO-2025-4134",
+    "summary": "Unbounded memory consumption in golang.org/x/crypto/ssh",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.45.0",
+    "published": "2025-11-19T20:11:57Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  },
+  {
+    "cve_id": "CVE-2025-47914",
+    "osv_id": "GO-2025-4135",
+    "summary": "Malformed constraint may cause denial of service in golang.org/x/crypto/ssh/agent",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.45.0",
+    "published": "2025-11-19T20:11:57Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/crypto"
+  }
+]

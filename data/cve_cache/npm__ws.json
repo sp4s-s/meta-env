@@ -1,0 +1,13 @@
+[
+  {
+    "cve_id": "CVE-2024-37890",
+    "osv_id": "GHSA-3h5v-q93c-6h6q",
+    "summary": "ws affected by a DoS when handling a request with many HTTP headers",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "5.2.4",
+    "published": "2024-06-17T19:09:10Z",
+    "ecosystem": "npm",
+    "package": "ws"
+  }
+]

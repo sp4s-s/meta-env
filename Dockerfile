@@ -11,10 +11,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Generate the synthetic cache to avoid any runtime overhead/network calls
-RUN python -c "from data.osv_cache import cache"
+# Pre-warm: generate synthetic fallback cache + pre-fetch CVEs for seed packages
+RUN python -c "from data.osv_cache import cache; from data.generator import scenario_bank; print(f'Loaded {len(scenario_bank.scenarios)} scenarios')"
 
-# Hugging face spaces standard port
+# Hugging Face Spaces standard port
 EXPOSE 7860
 
 CMD ["python", "-m", "server.app"]

@@ -1,0 +1,14 @@
+golang.org/x/text v0.3.3 h1:cgg1zB+GIE+h7zPj5ML7T7bUmKK6mU3et/ElhiPqIlc=
+golang.org/x/text v0.3.3/go.mod h1:5S0GMp4e4kMRyN0NTx3T1EzPpY8kC9qERpGVy/A50pA=
+golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 h1:psW17arqaxU48Z5kZ0CQnkZWQJsqcURM6tKiBApRjXI=
+golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:L8o9a8hIFBfA1Ax=
+golang.org/x/net v0.0.0-20201021035429-f5854403a974 h1:IX6qOQeG5uLjB/hjjwjedwfjND0hgjPMMyO1RoIXQNI=
+golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HjynQ5J3O=
+github.com/gin-gonic/gin v1.6.3 h1:ahKqKTFpO5KTPHxWZjEdPScmYaGtLo8Y4DMHoEsnp14=
+github.com/gin-gonic/gin v1.6.3/go.mod h1:BrxEj7Cz8OPe0W4hJ3s4M=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
+github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh=
+github.com/gorilla/websocket v1.4.1 h1:q7AeDBpnBk8AogcD4DSag/Ukw/KV+lSTGnUQ6szeUTg=
+github.com/gorilla/websocket v1.4.1/go.mod h1:YR8l580nyteQvA=
+github.com/tidwall/gjson v1.6.0 h1:Mb6Lmr1GFh2WbtEO/YmJCfQ/+e2p3K+L4jkhL1bUgQ=
+github.com/tidwall/gjson v1.6.0/go.mod h1:P256ACg0Mn+SZ8PB=

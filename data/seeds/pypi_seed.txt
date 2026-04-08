@@ -1,0 +1,21 @@
+# Pinned vulnerable PyPI packages — curated from 2024-2026 CVE disclosures
+jinja2==3.1.3
+pillow==10.2.0
+werkzeug==3.0.1
+cryptography==42.0.0
+paramiko==3.4.0
+aiohttp==3.9.1
+django==5.0
+flask==3.0.0
+urllib3==2.1.0
+setuptools==69.0.0
+certifi==2024.2.2
+requests==2.31.0
+tornado==6.4
+lxml==5.1.0
+pyyaml==6.0.1
+sqlalchemy==2.0.25
+gunicorn==21.2.0
+idna==3.6
+transformers==4.38.0
+gradio==4.19.0

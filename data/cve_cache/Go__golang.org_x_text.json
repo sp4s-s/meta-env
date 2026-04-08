@@ -1,0 +1,46 @@
+[
+  {
+    "cve_id": "CVE-2022-32149",
+    "osv_id": "GHSA-69ch-w2m2-3vjp",
+    "summary": "golang.org/x/text/language Denial of service via crafted Accept-Language header",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.3.8",
+    "published": "2022-10-14T19:00:40Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/text"
+  },
+  {
+    "cve_id": "CVE-2021-38561",
+    "osv_id": "GHSA-ppp9-7jff-5vj2",
+    "summary": "golang.org/x/text/language Out-of-bounds Read vulnerability",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "0.3.7",
+    "published": "2022-12-26T06:30:22Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/text"
+  },
+  {
+    "cve_id": "CVE-2021-38561",
+    "osv_id": "GO-2021-0113",
+    "summary": "Out-of-bounds read in golang.org/x/text/language",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.3.7",
+    "published": "2021-10-06T17:51:21Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/text"
+  },
+  {
+    "cve_id": "CVE-2022-32149",
+    "osv_id": "GO-2022-1059",
+    "summary": "Denial of service via crafted Accept-Language header in golang.org/x/text/language",
+    "cvss_score": 5.0,
+    "severity": "MEDIUM",
+    "fixed_version": "0.3.8",
+    "published": "2022-10-11T18:16:24Z",
+    "ecosystem": "Go",
+    "package": "golang.org/x/text"
+  }
+]

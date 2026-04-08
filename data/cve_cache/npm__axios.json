@@ -1,0 +1,46 @@
+[
+  {
+    "cve_id": "CVE-2026-25639",
+    "osv_id": "GHSA-43fc-jf86-j433",
+    "summary": "Axios is Vulnerable to Denial of Service via __proto__ Key in mergeConfig",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.13.5",
+    "published": "2026-02-09T17:46:14Z",
+    "ecosystem": "npm",
+    "package": "axios"
+  },
+  {
+    "cve_id": "CVE-2025-58754",
+    "osv_id": "GHSA-4hjh-wcwx-xvwj",
+    "summary": "Axios is vulnerable to DoS attack through lack of data size check",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.12.0",
+    "published": "2025-09-11T21:07:55Z",
+    "ecosystem": "npm",
+    "package": "axios"
+  },
+  {
+    "cve_id": "CVE-2024-39338",
+    "osv_id": "GHSA-8hc4-vh64-cxmj",
+    "summary": "Server-Side Request Forgery in axios",
+    "cvss_score": 8.0,
+    "severity": "HIGH",
+    "fixed_version": "1.7.4",
+    "published": "2024-08-12T15:30:49Z",
+    "ecosystem": "npm",
+    "package": "axios"
+  },
+  {
+    "cve_id": "CVE-2025-27152",
+    "osv_id": "GHSA-jr5f-v2jv-69x6",
+    "summary": "axios Requests Vulnerable To Possible SSRF and Credential Leakage via Absolute URL",
+    "cvss_score": 9.5,
+    "severity": "CRITICAL",
+    "fixed_version": "1.8.2",
+    "published": "2025-03-07T15:16:00Z",
+    "ecosystem": "npm",
+    "package": "axios"
+  }
+]
