@@ -203,14 +203,19 @@ body, .gradio-container, .gradio-container .main, .contain,
 .gradio-container { width: 100% !important; max-width: 100% !important; min-width: 100% !important; margin: 0 !important; padding: 0 !important; min-height: 100vh !important; }
 .gr-group, .gr-box, .gr-form, .gr-panel, .gr-block, .block,
 .gradio-container .block, .gradio-container .form { background: transparent !important; border-radius: 0 !important; box-shadow: none !important;}
-input, textarea, select, .gr-input, .gr-text-input,
+input:not([type="checkbox"]), textarea, select, .gr-input, .gr-text-input,
 [data-testid="textbox"], [data-testid="dropdown"] { background: var(--bg-input) !important; color: var(--text-primary) !important; border: 1px solid var(--border) !important; font-family: var(--mono) !important; border-radius: 0 !important; }
 label, .gr-label, .label-wrap { color: var(--text-secondary) !important; font-family: var(--mono) !important; text-transform: uppercase; font-size: 11px !important;}
 .tabs, .tab-nav, .tabitem { background: transparent !important; }
 .tab-nav { border-bottom: 1px solid var(--border) !important; }
 .tab-nav button { color: var(--text-tertiary) !important; font-weight: 400 !important; border: none !important; font-family: var(--mono) !important; text-transform: uppercase; border-radius: 0 !important;}
 .tab-nav button.selected { color: var(--text-primary) !important; border-bottom: 2px solid var(--text-primary) !important; background: transparent !important;}
-.gr-check-radio, .gr-checkbox { accent-color: var(--accent) !important; }
+input[type="checkbox"], .gr-checkbox { 
+    accent-color: var(--amber) !important;
+    border: 1px solid var(--border) !important;
+}
+
+
 footer { display: none !important; }
 
 .shell { min-height: 100vh; font-family: var(--mono); }
@@ -616,20 +621,22 @@ def _choose_file(obs: Any, selected_file: Optional[str]) -> Optional[str]:
     return available[0]
 
 
-def _highlight_lines(obs: Any, selected_file: Optional[str]) -> List[int]:
+def _highlight_lines(obs: Any, selected_file: Optional[str], show_ground_truth: bool = True) -> List[int]:
     if not obs or not selected_file:
         return []
     lines: set[int] = set()
-    if env.state:
+    if env.state and show_ground_truth:
         for cve_id, path in env.state.ground_truth_files.items():
             if path == selected_file:
                 lines.update(env.state.ground_truth_lines.get(cve_id, []))
+
         if env.state.action_history:
             last = env.state.action_history[-1]
             if last.get("file_path") == selected_file and last.get("line_number"):
                 lines.add(int(last["line_number"]))
-    for item in _candidate_signals([code_file for code_file in obs.code_files if code_file.path == selected_file]):
-        lines.update(item["lines"])
+        for item in _candidate_signals([code_file for code_file in obs.code_files if code_file.path == selected_file]):
+            lines.update(item["lines"])
+
     return sorted(line for line in lines if line > 0)
 
 
@@ -915,7 +922,8 @@ def _compose_outputs(selected_file: Optional[str], show_ground_truth: bool):
     _record_rollout_if_needed(obs)
     chosen_file = _choose_file(obs, selected_file)
     code_choices = [code_file.path for code_file in obs.code_files] if obs else []
-    code_html = _render_code(obs.code_files if obs else [], chosen_file, _highlight_lines(obs, chosen_file))
+    code_html = _render_code(obs.code_files if obs else [], chosen_file, _highlight_lines(obs, chosen_file, show_ground_truth))
+
     return (
         _status_label(obs),
         _episode_header_html(obs),
