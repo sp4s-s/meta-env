@@ -1373,7 +1373,8 @@ with gr.Blocks(title="DepVulnEnv") as ui:
                     metrics_html = gr.HTML(_metrics_html(None))
                     with gr.Row():
                         with gr.Column(scale=3, elem_classes="panel"):
-                            selected_file = gr.Dropdown(choices=[], label="File", interactive=True)
+                            selected_file = gr.Dropdown(choices=[], label="File", interactive=True, allow_custom_value=True)
+
                             code_html = gr.HTML(_render_code([], None, []))
                         with gr.Column(scale=2):
                             with gr.Column(elem_classes="panel"):
