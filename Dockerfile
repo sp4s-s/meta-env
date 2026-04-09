@@ -17,4 +17,5 @@ RUN python -c "from data.osv_cache import cache; from data.generator import scen
 # Hugging Face Spaces standard port
 EXPOSE 7860
 
-CMD ["python", "-m", "server.app"]
+CMD ["python", "-m", "server.ui"]
+

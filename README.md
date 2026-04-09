@@ -21,13 +21,10 @@ The repository includes a web UI, a small API surface, a baseline inference scri
 ## What Runs Here
 
 - `python -m server.app`
-  Starts the Hugging Face / production entrypoint on port `7860`
-  Serves the UI at `/`
-  Serves API routes under `/api/v1`
+  Starts the production entrypoint on port `7860` (includes API routes)
 
 - `python -m server.ui`
-  Starts the standalone UI on port `7861`
-  Useful when you only want to work on the Gradio frontend
+  Starts the standalone UI on port `7860` (matches Hugging Face default)
 
 - `python inference.py`
   Runs the baseline evaluator across tasks 1, 2, and 3
@@ -42,7 +39,8 @@ Use the requirements file if you want the full app, including Gradio:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m server.app
+python -m server.ui
+
 ```
 
 Open `http://localhost:7860`.
@@ -182,7 +180,7 @@ The Docker image:
 - installs dependencies from `requirements.txt`
 - pre-warms the cached scenario bank during build
 - exposes port `7860`
-- starts the app with `python -m server.app`
+- starts the app with `python -m server.ui`
 
 That matches the Hugging Face Space configuration in this repo.
 

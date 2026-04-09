@@ -22,7 +22,8 @@ dependencies = [
 dev = ["pytest>=8.0.0"]
 
 [project.scripts]
-server = "server.app:main"
+server = "server.ui:main"
+
 
 [tool.setuptools.packages.find]
 where = ["."]
